@@ -1481,6 +1481,85 @@ def api_stats():
 
 
 # =============================================================================
+# HTMX PARTIAL ENDPOINTS (for real-time updates)
+# =============================================================================
+
+@app.route('/htmx/agent/<agent_id>/stats')
+def htmx_agent_stats(agent_id):
+    """HTMX partial: Agent portal stats."""
+    if agent_id not in AGENT_INFO:
+        return '', 404
+
+    store = get_agent_requests_store()
+    requests = store.get_by_agent(agent_id)
+
+    request_stats = {
+        'total': len(requests),
+        'pending': len([r for r in requests if r.get('status') in ['submitted', 'under_review']]),
+        'approved': len([r for r in requests if r.get('status') == 'approved']),
+        'implemented': len([r for r in requests if r.get('status') == 'implemented']),
+    }
+
+    return render_template('agents/partials/stats.html', request_stats=request_stats)
+
+
+@app.route('/htmx/agent/<agent_id>/activity')
+def htmx_agent_activity(agent_id):
+    """HTMX partial: Agent recent activity."""
+    if agent_id not in AGENT_INFO:
+        return '', 404
+
+    store = get_agent_requests_store()
+    requests = store.get_by_agent(agent_id)
+    recent_activity = sorted(requests, key=lambda x: x.get('created_at', ''), reverse=True)[:5]
+
+    return render_template('agents/partials/activity.html', recent_activity=recent_activity)
+
+
+@app.route('/htmx/agent/<agent_id>/requests')
+def htmx_agent_requests(agent_id):
+    """HTMX partial: Agent requests table."""
+    if agent_id not in AGENT_INFO:
+        return '', 404
+
+    store = get_agent_requests_store()
+    requests = store.get_by_agent(agent_id)
+
+    return render_template('agents/partials/requests_table.html', requests=requests)
+
+
+@app.route('/htmx/requests/pending/count')
+def htmx_pending_count():
+    """HTMX partial: Pending requests count badge."""
+    store = get_agent_requests_store()
+    count = len(store.get_pending())
+    return f'<span class="badge bg-warning">{count}</span>'
+
+
+@app.route('/htmx/dashboard/stats')
+def htmx_dashboard_stats():
+    """HTMX partial: Dashboard statistics."""
+    ideas_store = get_ideas_store()
+    testers_store = get_testers_store()
+    projects_store = get_projects_store()
+    finances_store = get_finances_store()
+
+    invoices = finances_store.get_invoices()
+    outstanding = sum(i.get('amount', 0) for i in invoices
+                     if i.get('status') in ['sent', 'overdue'])
+
+    return render_template('partials/dashboard_stats.html',
+        ideas_count=len(ideas_store.get_all()),
+        ideas_pending=len(ideas_store.get_pending()),
+        testers_count=len(testers_store.get_all()),
+        testers_active=len(testers_store.get_available()),
+        projects_count=len(projects_store.get_all()),
+        projects_active=len(projects_store.get_active()),
+        outstanding=outstanding,
+    )
+
+
+# =============================================================================
 # AGENT PORTALS
 # =============================================================================
 

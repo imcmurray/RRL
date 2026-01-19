@@ -77,6 +77,87 @@ python orchestrator.py standup
 python orchestrator.py status
 ```
 
+## Web Dashboard
+
+The orchestrator includes a full-featured web dashboard for visual management of all company data.
+
+### Setup & Running
+
+```bash
+# Navigate to webapp directory
+cd webapp
+
+# Install Flask (if not already installed)
+pip install flask
+
+# Run the dashboard
+python app.py
+```
+
+The dashboard starts on **http://localhost:5000** by default. No login required for local development.
+
+### Key Pages
+
+| Page | URL | Description |
+|------|-----|-------------|
+| **Home** | `/` | Overview dashboard with quick links |
+| **Agent Portals** | `/agents` | All 12 agent workspaces |
+| **Ideas** | `/ideas` | Idea submissions and pipeline |
+| **Testers** | `/testers` | Beta tester management |
+| **Clients** | `/clients` | Client relationship tracking |
+| **Projects** | `/projects` | Active project management |
+| **Finances** | `/finances` | Invoices and payments |
+| **Feature Requests** | `/agents/requests` | Cross-agent feature requests |
+
+### Agent Portals
+
+Each of the 12 agents has their own portal at `/agents/<agent_id>`:
+
+```
+/agents/ceo          /agents/cfo           /agents/cito
+/agents/sales        /agents/legal         /agents/dev_lead
+/agents/design_lead  /agents/qa_lead       /agents/pm
+/agents/customer_success  /agents/marketing  /agents/support
+```
+
+Portals allow agents to:
+- View their responsibilities and metrics
+- Submit feature requests for their workspace
+- Track request status and vote on others' requests
+
+## CLI + Web Integration
+
+The CLI and Web Dashboard share the same data stores, so changes made in one are immediately reflected in the other:
+
+```
+┌─────────────────┐     ┌──────────────────────┐     ┌─────────────────┐
+│   CLI Commands  │────▶│  data/*.json files   │◀────│  Web Dashboard  │
+│  orchestrator.py│     │  (shared state)      │     │  webapp/app.py  │
+└─────────────────┘     └──────────────────────┘     └─────────────────┘
+```
+
+**Data Files:**
+- `data/ideas.json` — Idea submissions
+- `data/testers.json` — Tester registrations
+- `data/clients.json` — Client records
+- `data/projects.json` — Project data
+- `data/finances.json` — Invoices and payments
+- `data/agent_requests.json` — Feature requests from agents
+
+**Example Workflow:**
+```bash
+# Create an idea via CLI
+python orchestrator.py ideas add --name "FitTrack" --submitter-name "John" \
+  --submitter-email "john@example.com" --description "Fitness tracking app"
+
+# View it immediately in web dashboard at http://localhost:5000/ideas
+
+# Approve it via web dashboard, then check status via CLI
+python orchestrator.py ideas list --status approved
+```
+
+This bidirectional sync means you can use whichever interface fits your workflow.
+
 ## CLI Commands
 
 ### 1:1 Meetings

@@ -355,6 +355,76 @@ main {
     }
 }
 
+/* HTMX Loading Indicators */
+.htmx-indicator {
+    display: none;
+}
+
+.htmx-request .htmx-indicator {
+    display: inline-block;
+}
+
+.htmx-request.htmx-indicator {
+    display: inline-block;
+}
+
+/* Fade in/out transitions for htmx swaps */
+.htmx-swapping {
+    opacity: 0;
+    transition: opacity 200ms ease-out;
+}
+
+.htmx-added {
+    opacity: 0;
+}
+
+.htmx-settling {
+    opacity: 1;
+    transition: opacity 200ms ease-in;
+}
+
+/* Pulse animation for updates */
+@keyframes pulse-highlight {
+    0% { background-color: rgba(13, 110, 253, 0.1); }
+    100% { background-color: transparent; }
+}
+
+.htmx-settled {
+    animation: pulse-highlight 1s ease-out;
+}
+
+/* Loading overlay for larger sections */
+.htmx-loading {
+    position: relative;
+}
+
+.htmx-loading::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.7);
+    z-index: 10;
+}
+
+/* Mobile-friendly touch targets */
+@media (max-width: 768px) {
+    .btn {
+        min-height: 44px;
+        padding: 0.5rem 1rem;
+    }
+
+    .table td, .table th {
+        padding: 0.75rem 0.5rem;
+    }
+
+    .dropdown-item {
+        padding: 0.75rem 1.5rem;
+    }
+}
+
 /* Print styles */
 @media print {
     .navbar, .footer, .btn, .no-print {
