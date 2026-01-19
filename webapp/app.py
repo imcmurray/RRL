@@ -19,11 +19,14 @@ from src.data_store import (
     get_clients_store,
     get_projects_store,
     get_finances_store,
+    get_agent_requests_store,
     IdeaStatus,
     TesterStatus,
     ProjectStatus,
     InvoiceStatus,
     PaymentType,
+    FeatureRequestStatus,
+    FeatureRequestPriority,
 )
 from src import reports
 from src.utils import query_decisions, list_meetings, load_file
@@ -1475,6 +1478,379 @@ def api_stats():
         'projects_active': len(projects_store.get_active()),
         'outstanding': outstanding,
     })
+
+
+# =============================================================================
+# AGENT PORTALS
+# =============================================================================
+
+# Agent information for portal pages
+AGENT_INFO = {
+    'ceo': {
+        'id': 'ceo',
+        'name': 'Chief Executive Officer',
+        'role': 'CEO',
+        'team': 'executive',
+        'description': 'Strategic leadership, vision setting, and overall company direction. Oversees all departments and makes final decisions on major initiatives.',
+        'responsibilities': ['Company strategy', 'Team leadership', 'Client relationships', 'Business development'],
+        'metrics': ['Revenue growth', 'Client retention', 'Team health'],
+    },
+    'cfo': {
+        'id': 'cfo',
+        'name': 'Chief Financial Officer',
+        'role': 'CFO',
+        'team': 'executive',
+        'description': 'Financial planning, budgeting, and fiscal oversight. Manages company finances and ensures financial health.',
+        'responsibilities': ['Budget management', 'Financial reporting', 'Cash flow', 'Pricing strategy'],
+        'metrics': ['Profit margin', 'Cash flow', 'AR/AP health'],
+    },
+    'cito': {
+        'id': 'cito',
+        'name': 'Chief Information Technology Officer',
+        'role': 'CITO',
+        'team': 'executive',
+        'description': 'Technical strategy and architecture decisions. Leads technology direction and oversees engineering teams.',
+        'responsibilities': ['Tech strategy', 'Architecture decisions', 'Technical hiring', 'Innovation'],
+        'metrics': ['Tech debt ratio', 'System uptime', 'Idea conversion'],
+    },
+    'sales': {
+        'id': 'sales',
+        'name': 'Sales Director',
+        'role': 'Sales',
+        'team': 'executive',
+        'description': 'Business development and client acquisition. Manages sales pipeline and negotiates deals.',
+        'responsibilities': ['Lead generation', 'Client pitches', 'Deal negotiation', 'Pipeline management'],
+        'metrics': ['Pipeline value', 'Conversion rate', 'Deal velocity'],
+    },
+    'legal': {
+        'id': 'legal',
+        'name': 'Legal Counsel',
+        'role': 'Legal',
+        'team': 'executive',
+        'description': 'Contract review, compliance, and risk management. Protects company interests and ensures legal compliance.',
+        'responsibilities': ['Contract review', 'IP protection', 'Compliance', 'Risk assessment'],
+        'metrics': ['Contract turnaround', 'Compliance status'],
+    },
+    'dev_lead': {
+        'id': 'dev_lead',
+        'name': 'Development Lead',
+        'role': 'DevLead',
+        'team': 'technical',
+        'description': 'Engineering team leadership and code quality. Oversees development processes and technical implementation.',
+        'responsibilities': ['Code reviews', 'Technical mentoring', 'Sprint planning', 'Architecture implementation'],
+        'metrics': ['Code quality', 'Team velocity', 'Bug rate'],
+    },
+    'design_lead': {
+        'id': 'design_lead',
+        'name': 'Design Lead',
+        'role': 'DesignLead',
+        'team': 'technical',
+        'description': 'User experience and visual design direction. Creates and maintains design systems and standards.',
+        'responsibilities': ['UX design', 'Design systems', 'User research', 'Brand consistency'],
+        'metrics': ['Design consistency', 'User satisfaction'],
+    },
+    'qa_lead': {
+        'id': 'qa_lead',
+        'name': 'Quality Assurance Lead',
+        'role': 'QALead',
+        'team': 'technical',
+        'description': 'Quality standards and testing strategy. Ensures product quality through comprehensive testing.',
+        'responsibilities': ['Test strategy', 'QA processes', 'Bug triage', 'Release certification'],
+        'metrics': ['Bug escape rate', 'Test coverage', 'Release quality'],
+    },
+    'pm': {
+        'id': 'pm',
+        'name': 'Project Manager',
+        'role': 'PM',
+        'team': 'operations',
+        'description': 'Project coordination and delivery management. Ensures projects are delivered on time and within scope.',
+        'responsibilities': ['Project planning', 'Resource allocation', 'Stakeholder communication', 'Risk management'],
+        'metrics': ['On-time delivery', 'Scope creep', 'Client satisfaction'],
+    },
+    'customer_success': {
+        'id': 'customer_success',
+        'name': 'Customer Success Manager',
+        'role': 'CustomerSuccess',
+        'team': 'operations',
+        'description': 'Client relationship management post-sale. Ensures client satisfaction and identifies growth opportunities.',
+        'responsibilities': ['Client onboarding', 'Success metrics', 'Relationship building', 'Upselling'],
+        'metrics': ['NPS score', 'Retention rate', 'Expansion revenue'],
+    },
+    'marketing': {
+        'id': 'marketing',
+        'name': 'Marketing Director',
+        'role': 'Marketing',
+        'team': 'operations',
+        'description': 'Brand strategy and marketing campaigns. Drives awareness and generates leads for the sales team.',
+        'responsibilities': ['Brand strategy', 'Content marketing', 'ASO/SEO', 'Lead generation'],
+        'metrics': ['App rankings', 'Traffic growth', 'Lead conversion'],
+    },
+    'support': {
+        'id': 'support',
+        'name': 'Support Lead',
+        'role': 'Support',
+        'team': 'operations',
+        'description': 'Customer support and issue resolution. Manages support team and ensures timely issue resolution.',
+        'responsibilities': ['Support operations', 'Issue triage', 'Knowledge base', 'Escalation management'],
+        'metrics': ['Response time', 'Resolution rate', 'Satisfaction score'],
+    },
+}
+
+
+@app.route('/agents')
+def agents_list():
+    """List all agent portals."""
+    store = get_agent_requests_store()
+
+    # Get all agents with their request counts
+    all_requests = store.get_all()
+
+    # Organize agents by team
+    executive_team = []
+    technical_team = []
+    operations_team = []
+
+    for agent_id, info in AGENT_INFO.items():
+        agent_data = {
+            **info,
+            'request_count': len([r for r in all_requests if r.get('agent_id') == agent_id])
+        }
+
+        if info['team'] == 'executive':
+            executive_team.append(agent_data)
+        elif info['team'] == 'technical':
+            technical_team.append(agent_data)
+        else:
+            operations_team.append(agent_data)
+
+    # Calculate stats
+    pending_count = len(store.get_pending())
+    stats = {
+        'total': len(all_requests),
+        'submitted': len([r for r in all_requests if r.get('status') == 'submitted']),
+        'under_review': len([r for r in all_requests if r.get('status') == 'under_review']),
+        'approved': len([r for r in all_requests if r.get('status') == 'approved']),
+        'implemented': len([r for r in all_requests if r.get('status') == 'implemented']),
+        'rejected': len([r for r in all_requests if r.get('status') == 'rejected']),
+    }
+
+    return render_template('agents/list.html',
+        executive_team=executive_team,
+        technical_team=technical_team,
+        operations_team=operations_team,
+        pending_count=pending_count,
+        stats=stats
+    )
+
+
+@app.route('/agents/<agent_id>')
+def agent_portal(agent_id):
+    """Individual agent portal."""
+    if agent_id not in AGENT_INFO:
+        flash('Agent not found', 'error')
+        return redirect(url_for('agents_list'))
+
+    agent = AGENT_INFO[agent_id]
+    store = get_agent_requests_store()
+
+    # Get agent's requests
+    requests = store.get_by_agent(agent_id)
+
+    # Calculate request stats for this agent
+    request_stats = {
+        'total': len(requests),
+        'pending': len([r for r in requests if r.get('status') in ['submitted', 'under_review']]),
+        'approved': len([r for r in requests if r.get('status') == 'approved']),
+        'implemented': len([r for r in requests if r.get('status') == 'implemented']),
+    }
+
+    # Get recent activity (requests sorted by date)
+    recent_activity = sorted(requests, key=lambda x: x.get('created_at', ''), reverse=True)[:5]
+
+    return render_template('agents/portal.html',
+        agent=agent,
+        requests=requests,
+        request_stats=request_stats,
+        recent_activity=recent_activity,
+        priorities=FeatureRequestPriority,
+        statuses=FeatureRequestStatus
+    )
+
+
+@app.route('/agents/<agent_id>/request/new', methods=['GET', 'POST'])
+def agent_request_new(agent_id):
+    """Create a new feature request for an agent."""
+    if agent_id not in AGENT_INFO:
+        flash('Agent not found', 'error')
+        return redirect(url_for('agents_list'))
+
+    agent = AGENT_INFO[agent_id]
+
+    if request.method == 'POST':
+        store = get_agent_requests_store()
+
+        feature_request = store.create_request(
+            agent_id=agent_id,
+            title=request.form.get('title'),
+            description=request.form.get('description'),
+            request_type=request.form.get('request_type', 'feature'),
+            priority=FeatureRequestPriority(request.form.get('priority', 'medium')),
+            justification=request.form.get('justification', ''),
+            affected_area=request.form.get('affected_area', ''),
+        )
+
+        flash(f'Feature request "{feature_request["title"]}" submitted!', 'success')
+        return redirect(url_for('agent_portal', agent_id=agent_id))
+
+    return render_template('agents/request_form.html',
+        agent=agent,
+        feature_request=None,
+        priorities=FeatureRequestPriority
+    )
+
+
+@app.route('/agents/requests')
+def agent_requests_all():
+    """List all agent feature requests."""
+    store = get_agent_requests_store()
+    status_filter = request.args.get('status', '')
+    agent_filter = request.args.get('agent', '')
+
+    if status_filter:
+        requests_list = store.get_by_status(FeatureRequestStatus(status_filter))
+    elif agent_filter:
+        requests_list = store.get_by_agent(agent_filter)
+    else:
+        requests_list = store.get_all()
+
+    # Sort by created_at descending
+    requests_list = sorted(requests_list, key=lambda x: x.get('created_at', ''), reverse=True)
+
+    # Enrich with agent info
+    for req in requests_list:
+        req['_agent'] = AGENT_INFO.get(req.get('agent_id', ''), {})
+
+    return render_template('agents/requests_list.html',
+        requests=requests_list,
+        agents=AGENT_INFO,
+        statuses=FeatureRequestStatus,
+        priorities=FeatureRequestPriority,
+        current_status=status_filter,
+        current_agent=agent_filter
+    )
+
+
+@app.route('/agents/requests/pending')
+def agent_requests_pending():
+    """List pending feature requests for review."""
+    store = get_agent_requests_store()
+    pending = store.get_pending()
+
+    # Sort by priority (critical first) then by date
+    priority_order = {'critical': 0, 'high': 1, 'medium': 2, 'low': 3}
+    pending = sorted(pending, key=lambda x: (
+        priority_order.get(x.get('priority', 'medium'), 2),
+        x.get('created_at', '')
+    ))
+
+    # Enrich with agent info
+    for req in pending:
+        req['_agent'] = AGENT_INFO.get(req.get('agent_id', ''), {})
+
+    return render_template('agents/requests_pending.html',
+        requests=pending,
+        agents=AGENT_INFO,
+        statuses=FeatureRequestStatus
+    )
+
+
+@app.route('/agents/requests/<request_id>')
+def agent_request_detail(request_id):
+    """View feature request details."""
+    store = get_agent_requests_store()
+    feature_request = store.get_by_id(request_id)
+
+    if not feature_request:
+        flash('Request not found', 'error')
+        return redirect(url_for('agent_requests_all'))
+
+    agent = AGENT_INFO.get(feature_request.get('agent_id', ''), {})
+
+    return render_template('agents/request_detail.html',
+        request=feature_request,
+        agent=agent,
+        statuses=FeatureRequestStatus,
+        priorities=FeatureRequestPriority
+    )
+
+
+@app.route('/agents/requests/<request_id>/status', methods=['POST'])
+def agent_request_update_status(request_id):
+    """Update feature request status."""
+    store = get_agent_requests_store()
+    new_status = request.form.get('status')
+    notes = request.form.get('notes', '')
+    reviewer = request.form.get('reviewer', 'Architect')
+
+    result = store.update_status(request_id, FeatureRequestStatus(new_status), reviewer, notes)
+
+    if result:
+        flash(f'Status updated to {new_status}', 'success')
+    else:
+        flash('Failed to update status', 'error')
+
+    return redirect(url_for('agent_request_detail', request_id=request_id))
+
+
+@app.route('/agents/requests/<request_id>/approve', methods=['POST'])
+def agent_request_approve(request_id):
+    """Approve a feature request."""
+    store = get_agent_requests_store()
+    notes = request.form.get('notes', '')
+    reviewer = request.form.get('reviewer', 'Architect')
+
+    result = store.approve(request_id, reviewer, notes)
+
+    if result:
+        flash('Request approved!', 'success')
+    else:
+        flash('Failed to approve request', 'error')
+
+    return redirect(url_for('agent_request_detail', request_id=request_id))
+
+
+@app.route('/agents/requests/<request_id>/reject', methods=['POST'])
+def agent_request_reject(request_id):
+    """Reject a feature request."""
+    store = get_agent_requests_store()
+    reason = request.form.get('reason', 'No reason provided')
+    reviewer = request.form.get('reviewer', 'Architect')
+
+    result = store.reject(request_id, reviewer, reason)
+
+    if result:
+        flash('Request rejected', 'warning')
+    else:
+        flash('Failed to reject request', 'error')
+
+    return redirect(url_for('agent_request_detail', request_id=request_id))
+
+
+@app.route('/agents/requests/<request_id>/vote', methods=['POST'])
+def agent_request_vote(request_id):
+    """Vote on a feature request (by other agents)."""
+    store = get_agent_requests_store()
+    agent_id = request.form.get('agent_id')
+    vote_type = request.form.get('vote_type', 'support')
+
+    result = store.vote(request_id, agent_id, vote_type)
+
+    if result:
+        flash(f'Vote recorded ({vote_type})', 'success')
+    else:
+        flash('Failed to record vote', 'error')
+
+    return redirect(url_for('agent_request_detail', request_id=request_id))
 
 
 # =============================================================================

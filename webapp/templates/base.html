@@ -84,10 +84,30 @@
                             <li><a class="dropdown-item" href="{{ url_for('decisions_list') }}">Decisions Log</a></li>
                         </ul>
                     </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle {% if 'agent' in request.endpoint %}active{% endif %}" href="#" data-bs-toggle="dropdown">
+                            <i class="bi bi-robot me-1"></i>Agent Portals
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="{{ url_for('agents_list') }}">All Agent Portals</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('agent_requests_pending') }}">Pending Requests</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('agent_requests_all') }}">All Requests</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li class="dropdown-header">Executive Team</li>
+                            <li><a class="dropdown-item" href="{{ url_for('agent_portal', agent_id='ceo') }}">CEO Portal</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('agent_portal', agent_id='cfo') }}">CFO Portal</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('agent_portal', agent_id='cito') }}">CITO Portal</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li class="dropdown-header">Technical Team</li>
+                            <li><a class="dropdown-item" href="{{ url_for('agent_portal', agent_id='dev_lead') }}">DevLead Portal</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('agent_portal', agent_id='design_lead') }}">DesignLead Portal</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('agent_portal', agent_id='qa_lead') }}">QALead Portal</a></li>
+                        </ul>
+                    </li>
                 </ul>
                 <div class="navbar-nav">
                     <span class="nav-link text-light">
-                        <i class="bi bi-robot me-1"></i>AI Orchestrator
+                        <i class="bi bi-gear-fill me-1"></i>AI Orchestrator
                     </span>
                 </div>
             </div>

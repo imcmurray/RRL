@@ -22,11 +22,14 @@ from src.data_store import (
     get_clients_store,
     get_projects_store,
     get_finances_store,
+    get_agent_requests_store,
     IdeaStatus,
     TesterStatus,
     ProjectStatus,
     InvoiceStatus,
     PaymentType,
+    FeatureRequestStatus,
+    FeatureRequestPriority,
 )
 from src import reports
 
@@ -598,3 +601,332 @@ def report_all():
 
     console.print()
     console.print("[bold green]All reports generated successfully![/bold green]")
+
+
+# =============================================================================
+# AGENT REQUESTS COMMANDS
+# =============================================================================
+
+# Agent display names
+AGENT_NAMES = {
+    "ceo": "CEO",
+    "cfo": "CFO",
+    "cito": "CITO",
+    "sales": "Sales",
+    "legal": "Legal",
+    "dev_lead": "DevLead",
+    "design_lead": "DesignLead",
+    "qa_lead": "QALead",
+    "pm": "PM",
+    "customer_success": "CustomerSuccess",
+    "marketing": "Marketing",
+    "support": "Support",
+}
+
+
+@click.group()
+def requests():
+    """Manage agent feature requests."""
+    pass
+
+
+@requests.command("list")
+@click.option("--agent", "-a", type=click.Choice(list(AGENT_NAMES.keys())), help="Filter by agent")
+@click.option("--status", "-s", type=click.Choice([s.value for s in FeatureRequestStatus]), help="Filter by status")
+@click.option("--limit", "-n", default=20, help="Number of requests to show")
+def requests_list(agent: str | None, status: str | None, limit: int):
+    """List agent feature requests."""
+    store = get_agent_requests_store()
+
+    if agent:
+        requests_data = store.get_by_agent(agent)
+    elif status:
+        requests_data = store.get_by_status(FeatureRequestStatus(status))
+    else:
+        requests_data = store.get_all()
+
+    requests_data = requests_data[:limit]
+
+    if not requests_data:
+        console.print("[yellow]No requests found.[/yellow]")
+        return
+
+    table = Table(title="Agent Feature Requests")
+    table.add_column("ID", style="dim")
+    table.add_column("Agent")
+    table.add_column("Title")
+    table.add_column("Type")
+    table.add_column("Priority")
+    table.add_column("Status")
+    table.add_column("Created")
+
+    for req in requests_data:
+        priority_style = {
+            "critical": "red bold",
+            "high": "yellow",
+            "medium": "blue",
+            "low": "dim",
+        }.get(req.get("priority", "medium"), "")
+
+        status_style = {
+            "submitted": "yellow",
+            "under_review": "blue",
+            "approved": "green",
+            "rejected": "red",
+            "in_progress": "cyan",
+            "implemented": "green bold",
+            "deferred": "dim",
+        }.get(req.get("status", ""), "")
+
+        table.add_row(
+            req["id"][:8],
+            AGENT_NAMES.get(req.get("agent_id", ""), req.get("agent_id", "N/A")),
+            req.get("title", "Untitled")[:30],
+            req.get("request_type", "N/A"),
+            f"[{priority_style}]{req.get('priority', 'N/A')}[/{priority_style}]",
+            f"[{status_style}]{req.get('status', 'N/A')}[/{status_style}]",
+            req.get("created_at", "")[:10],
+        )
+
+    console.print(table)
+
+
+@requests.command("pending")
+def requests_pending():
+    """List pending feature requests."""
+    store = get_agent_requests_store()
+    pending = store.get_pending()
+
+    if not pending:
+        console.print("[green]No pending requests - all caught up![/green]")
+        return
+
+    console.print(f"[bold]{len(pending)} pending request(s):[/bold]")
+    console.print()
+
+    # Sort by priority
+    priority_order = {"critical": 0, "high": 1, "medium": 2, "low": 3}
+    pending = sorted(pending, key=lambda x: priority_order.get(x.get("priority", "medium"), 2))
+
+    for req in pending:
+        priority_style = {
+            "critical": "red bold",
+            "high": "yellow",
+            "medium": "blue",
+            "low": "dim",
+        }.get(req.get("priority", "medium"), "")
+
+        console.print(Panel(
+            f"[bold]{req.get('title', 'Untitled')}[/bold]\n"
+            f"Agent: {AGENT_NAMES.get(req.get('agent_id', ''), req.get('agent_id', 'N/A'))}\n"
+            f"Priority: [{priority_style}]{req.get('priority', 'N/A')}[/{priority_style}]\n"
+            f"Type: {req.get('request_type', 'N/A')}\n\n"
+            f"{req.get('description', 'No description')[:200]}",
+            title=f"ID: {req['id'][:8]}",
+            border_style="yellow"
+        ))
+        console.print()
+
+
+@requests.command("show")
+@click.argument("request_id")
+def requests_show(request_id: str):
+    """Show details for a specific request."""
+    store = get_agent_requests_store()
+    req = store.get_by_id(request_id)
+
+    if not req:
+        # Try partial match
+        all_requests = store.get_all()
+        matches = [r for r in all_requests if r["id"].startswith(request_id)]
+        if len(matches) == 1:
+            req = matches[0]
+        elif len(matches) > 1:
+            console.print(f"[yellow]Multiple matches found. Please be more specific.[/yellow]")
+            return
+        else:
+            console.print(f"[red]Request not found: {request_id}[/red]")
+            return
+
+    console.print()
+    console.print(Panel(f"[bold]{req.get('title', 'Untitled')}[/bold]", border_style="cyan"))
+    console.print()
+    console.print(f"[bold]ID:[/bold] {req['id']}")
+    console.print(f"[bold]Agent:[/bold] {AGENT_NAMES.get(req.get('agent_id', ''), req.get('agent_id', 'N/A'))}")
+    console.print(f"[bold]Type:[/bold] {req.get('request_type', 'N/A')}")
+    console.print(f"[bold]Priority:[/bold] {req.get('priority', 'N/A')}")
+    console.print(f"[bold]Status:[/bold] {req.get('status', 'N/A')}")
+    console.print(f"[bold]Created:[/bold] {req.get('created_at', 'N/A')}")
+    console.print()
+    console.print("[bold]Description:[/bold]")
+    console.print(req.get("description", "No description"))
+    console.print()
+
+    if req.get("justification"):
+        console.print("[bold]Justification:[/bold]")
+        console.print(req.get("justification"))
+        console.print()
+
+    if req.get("affected_area"):
+        console.print(f"[bold]Affected Area:[/bold] {req.get('affected_area')}")
+        console.print()
+
+    votes = req.get("votes", {})
+    if votes.get("support") or votes.get("oppose"):
+        console.print("[bold]Votes:[/bold]")
+        if votes.get("support"):
+            console.print(f"  [green]Support:[/green] {', '.join(votes['support'])}")
+        if votes.get("oppose"):
+            console.print(f"  [red]Oppose:[/red] {', '.join(votes['oppose'])}")
+        console.print()
+
+    if req.get("reviewed_at"):
+        console.print(f"[bold]Reviewed:[/bold] {req.get('reviewed_at')} by {req.get('reviewed_by', 'N/A')}")
+
+
+@requests.command("create")
+@click.option("--agent", "-a", required=True, type=click.Choice(list(AGENT_NAMES.keys())), help="Agent making the request")
+@click.option("--title", "-t", required=True, help="Request title")
+@click.option("--description", "-d", required=True, help="Detailed description")
+@click.option("--type", "request_type", type=click.Choice(["feature", "enhancement", "data", "integration", "ui", "automation", "other"]), default="feature")
+@click.option("--priority", "-p", type=click.Choice([p.value for p in FeatureRequestPriority]), default="medium")
+@click.option("--justification", "-j", default="", help="Business justification")
+@click.option("--area", default="", help="Affected area of the portal")
+def requests_create(agent, title, description, request_type, priority, justification, area):
+    """Create a new feature request for an agent."""
+    store = get_agent_requests_store()
+
+    req = store.create_request(
+        agent_id=agent,
+        title=title,
+        description=description,
+        request_type=request_type,
+        priority=FeatureRequestPriority(priority),
+        justification=justification,
+        affected_area=area,
+    )
+
+    console.print(f"[green]Created request: {req['id'][:8]} - {req['title']}[/green]")
+    console.print(f"Agent: {AGENT_NAMES.get(agent, agent)}")
+    console.print(f"Status: {req['status']}")
+
+
+@requests.command("approve")
+@click.argument("request_id")
+@click.option("--note", "-n", default="", help="Approval note")
+@click.option("--reviewer", "-r", default="Architect", help="Reviewer name")
+def requests_approve(request_id: str, note: str, reviewer: str):
+    """Approve a feature request."""
+    store = get_agent_requests_store()
+
+    # Try partial match
+    req = store.get_by_id(request_id)
+    if not req:
+        all_requests = store.get_all()
+        matches = [r for r in all_requests if r["id"].startswith(request_id)]
+        if len(matches) == 1:
+            request_id = matches[0]["id"]
+        elif len(matches) > 1:
+            console.print(f"[yellow]Multiple matches found. Please be more specific.[/yellow]")
+            return
+        else:
+            console.print(f"[red]Request not found: {request_id}[/red]")
+            return
+
+    result = store.approve(request_id, reviewer, note)
+
+    if result:
+        console.print(f"[green]Approved request: {request_id[:8]}[/green]")
+    else:
+        console.print(f"[red]Failed to approve request[/red]")
+
+
+@requests.command("reject")
+@click.argument("request_id")
+@click.option("--reason", "-r", required=True, help="Rejection reason")
+@click.option("--reviewer", default="Architect", help="Reviewer name")
+def requests_reject(request_id: str, reason: str, reviewer: str):
+    """Reject a feature request."""
+    store = get_agent_requests_store()
+
+    # Try partial match
+    req = store.get_by_id(request_id)
+    if not req:
+        all_requests = store.get_all()
+        matches = [r for r in all_requests if r["id"].startswith(request_id)]
+        if len(matches) == 1:
+            request_id = matches[0]["id"]
+        elif len(matches) > 1:
+            console.print(f"[yellow]Multiple matches found. Please be more specific.[/yellow]")
+            return
+        else:
+            console.print(f"[red]Request not found: {request_id}[/red]")
+            return
+
+    result = store.reject(request_id, reviewer, reason)
+
+    if result:
+        console.print(f"[yellow]Rejected request: {request_id[:8]}[/yellow]")
+    else:
+        console.print(f"[red]Failed to reject request[/red]")
+
+
+@requests.command("status")
+@click.argument("request_id")
+@click.argument("new_status", type=click.Choice([s.value for s in FeatureRequestStatus]))
+@click.option("--note", "-n", default="", help="Status update note")
+@click.option("--reviewer", "-r", default="Architect", help="Reviewer name")
+def requests_status(request_id: str, new_status: str, note: str, reviewer: str):
+    """Update request status."""
+    store = get_agent_requests_store()
+
+    # Try partial match
+    req = store.get_by_id(request_id)
+    if not req:
+        all_requests = store.get_all()
+        matches = [r for r in all_requests if r["id"].startswith(request_id)]
+        if len(matches) == 1:
+            request_id = matches[0]["id"]
+        elif len(matches) > 1:
+            console.print(f"[yellow]Multiple matches found. Please be more specific.[/yellow]")
+            return
+        else:
+            console.print(f"[red]Request not found: {request_id}[/red]")
+            return
+
+    result = store.update_status(request_id, FeatureRequestStatus(new_status), reviewer, note)
+
+    if result:
+        console.print(f"[green]Updated request {request_id[:8]} status to: {new_status}[/green]")
+    else:
+        console.print(f"[red]Failed to update request status[/red]")
+
+
+@requests.command("vote")
+@click.argument("request_id")
+@click.argument("voter_agent", type=click.Choice(list(AGENT_NAMES.keys())))
+@click.option("--type", "vote_type", type=click.Choice(["support", "oppose"]), default="support", help="Vote type")
+def requests_vote(request_id: str, voter_agent: str, vote_type: str):
+    """Cast a vote on a request (as another agent)."""
+    store = get_agent_requests_store()
+
+    # Try partial match
+    req = store.get_by_id(request_id)
+    if not req:
+        all_requests = store.get_all()
+        matches = [r for r in all_requests if r["id"].startswith(request_id)]
+        if len(matches) == 1:
+            request_id = matches[0]["id"]
+        elif len(matches) > 1:
+            console.print(f"[yellow]Multiple matches found. Please be more specific.[/yellow]")
+            return
+        else:
+            console.print(f"[red]Request not found: {request_id}[/red]")
+            return
+
+    result = store.vote(request_id, voter_agent, vote_type)
+
+    if result:
+        console.print(f"[green]Recorded {vote_type} vote from {AGENT_NAMES.get(voter_agent, voter_agent)} on request {request_id[:8]}[/green]")
+    else:
+        console.print(f"[red]Failed to record vote[/red]")

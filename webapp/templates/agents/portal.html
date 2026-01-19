@@ -1,0 +1,217 @@
+{% extends "base.html" %}
+
+{% block title %}{{ agent.name }} Portal{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('agents_list') }}">Agent Portals</a></li>
+                <li class="breadcrumb-item active">{{ agent.role }}</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<!-- Agent Header -->
+<div class="row mb-4">
+    <div class="col-lg-8">
+        <div class="card content-card">
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-3">
+                    <span class="agent-badge agent-{{ agent.id }} me-3" style="font-size: 1.5rem; padding: 0.75rem 1.5rem;">{{ agent.role }}</span>
+                    <div>
+                        <h1 class="h3 mb-1">{{ agent.name }}</h1>
+                        <p class="text-muted mb-0">{{ agent.description }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card content-card h-100">
+            <div class="card-body">
+                <h5 class="mb-3">Quick Actions</h5>
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('agent_request_new', agent_id=agent.id) }}" class="btn btn-primary">
+                        <i class="bi bi-plus-circle me-1"></i>New Feature Request
+                    </a>
+                    <a href="{{ url_for('agent_requests_all', agent=agent.id) }}" class="btn btn-outline-primary">
+                        <i class="bi bi-list-ul me-1"></i>View My Requests
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Stats Row -->
+<div class="row mb-4">
+    <div class="col-md-3 col-6 mb-3">
+        <div class="card stats-card">
+            <div class="card-body finance-metric">
+                <div class="value text-primary">{{ request_stats.total }}</div>
+                <div class="label">Total Requests</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6 mb-3">
+        <div class="card stats-card">
+            <div class="card-body finance-metric">
+                <div class="value text-warning">{{ request_stats.pending }}</div>
+                <div class="label">Pending Review</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6 mb-3">
+        <div class="card stats-card">
+            <div class="card-body finance-metric">
+                <div class="value text-success">{{ request_stats.approved }}</div>
+                <div class="label">Approved</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6 mb-3">
+        <div class="card stats-card">
+            <div class="card-body finance-metric">
+                <div class="value text-info">{{ request_stats.implemented }}</div>
+                <div class="label">Implemented</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Responsibilities & Metrics -->
+    <div class="col-lg-4 mb-4">
+        <div class="card content-card h-100">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-list-check me-2"></i>Responsibilities</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled mb-0">
+                    {% for resp in agent.responsibilities %}
+                    <li class="mb-2">
+                        <i class="bi bi-check-circle text-success me-2"></i>{{ resp }}
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4 mb-4">
+        <div class="card content-card h-100">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-graph-up me-2"></i>Key Metrics</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled mb-0">
+                    {% for metric in agent.metrics %}
+                    <li class="mb-2">
+                        <i class="bi bi-speedometer2 text-primary me-2"></i>{{ metric }}
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4 mb-4">
+        <div class="card content-card h-100">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-clock-history me-2"></i>Recent Activity</h5>
+            </div>
+            <div class="card-body">
+                {% if recent_activity %}
+                <ul class="list-unstyled mb-0">
+                    {% for activity in recent_activity %}
+                    <li class="mb-2 pb-2 border-bottom">
+                        <a href="{{ url_for('agent_request_detail', request_id=activity.id) }}" class="text-decoration-none">
+                            <strong>{{ activity.title }}</strong>
+                        </a>
+                        <br>
+                        <small class="text-muted">
+                            <span class="badge bg-{{ 'warning' if activity.status == 'submitted' else 'info' if activity.status == 'under_review' else 'success' if activity.status in ['approved', 'implemented'] else 'danger' if activity.status == 'rejected' else 'secondary' }}">
+                                {{ activity.status | replace('_', ' ') | title }}
+                            </span>
+                            {{ activity.created_at | datetime }}
+                        </small>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p class="text-muted mb-0">No recent activity</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Feature Requests -->
+<div class="card content-card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="bi bi-lightbulb me-2"></i>Feature Requests</h5>
+        <a href="{{ url_for('agent_request_new', agent_id=agent.id) }}" class="btn btn-sm btn-primary">
+            <i class="bi bi-plus me-1"></i>New Request
+        </a>
+    </div>
+    <div class="card-body">
+        {% if requests %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Type</th>
+                        <th>Priority</th>
+                        <th>Status</th>
+                        <th>Created</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for req in requests %}
+                    <tr>
+                        <td>
+                            <a href="{{ url_for('agent_request_detail', request_id=req.id) }}">
+                                {{ req.title }}
+                            </a>
+                        </td>
+                        <td>
+                            <span class="badge bg-secondary">{{ req.request_type | title }}</span>
+                        </td>
+                        <td>
+                            <span class="badge bg-{{ 'danger' if req.priority == 'critical' else 'warning' if req.priority == 'high' else 'info' if req.priority == 'medium' else 'secondary' }}">
+                                {{ req.priority | title }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge bg-{{ 'warning' if req.status == 'submitted' else 'info' if req.status == 'under_review' else 'success' if req.status in ['approved', 'implemented'] else 'danger' if req.status == 'rejected' else 'secondary' }}">
+                                {{ req.status | replace('_', ' ') | title }}
+                            </span>
+                        </td>
+                        <td>{{ req.created_at | date }}</td>
+                        <td>
+                            <a href="{{ url_for('agent_request_detail', request_id=req.id) }}" class="btn btn-sm btn-outline-primary">
+                                View
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="bi bi-lightbulb display-4 text-muted"></i>
+            <p class="text-muted mt-2">No feature requests yet</p>
+            <a href="{{ url_for('agent_request_new', agent_id=agent.id) }}" class="btn btn-primary">
+                <i class="bi bi-plus-circle me-1"></i>Submit Your First Request
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

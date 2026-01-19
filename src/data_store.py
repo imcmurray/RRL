@@ -77,6 +77,23 @@ class PaymentType(str, Enum):
     EXPENSE = "expense"
 
 
+class FeatureRequestStatus(str, Enum):
+    SUBMITTED = "submitted"
+    UNDER_REVIEW = "under_review"
+    APPROVED = "approved"
+    REJECTED = "rejected"
+    IN_PROGRESS = "in_progress"
+    IMPLEMENTED = "implemented"
+    DEFERRED = "deferred"
+
+
+class FeatureRequestPriority(str, Enum):
+    LOW = "low"
+    MEDIUM = "medium"
+    HIGH = "high"
+    CRITICAL = "critical"
+
+
 # =============================================================================
 # BASE DATA STORE
 # =============================================================================
@@ -781,6 +798,116 @@ class FinancesStore(DataStore):
 
 
 # =============================================================================
+# AGENT REQUESTS STORE
+# =============================================================================
+
+class AgentRequestsStore(DataStore):
+    """Store for agent feature requests and portal customizations."""
+
+    def __init__(self):
+        super().__init__("agent_requests")
+
+    def create_request(
+        self,
+        agent_id: str,
+        title: str,
+        description: str,
+        request_type: str = "feature",  # feature, bug, enhancement, content
+        priority: FeatureRequestPriority = FeatureRequestPriority.MEDIUM,
+        justification: str = "",
+        affected_area: str = "",  # portal section affected
+    ) -> dict[str, Any]:
+        """Create a new feature request from an agent."""
+        return self.create({
+            "agent_id": agent_id,
+            "title": title,
+            "description": description,
+            "request_type": request_type,
+            "priority": priority.value if isinstance(priority, FeatureRequestPriority) else priority,
+            "justification": justification,
+            "affected_area": affected_area,
+            "status": FeatureRequestStatus.SUBMITTED.value,
+            "submitted_at": datetime.now().isoformat(),
+            "reviewed_at": None,
+            "reviewed_by": None,
+            "review_notes": "",
+            "implemented_at": None,
+            "notes": [],
+            "votes": [],  # Other agents can vote on requests
+        })
+
+    def update_status(
+        self,
+        request_id: str,
+        new_status: FeatureRequestStatus,
+        reviewer: str = "Architect",
+        notes: str = "",
+    ) -> dict[str, Any] | None:
+        """Update the status of a feature request."""
+        update_data = {
+            "status": new_status.value if isinstance(new_status, FeatureRequestStatus) else new_status,
+            "reviewed_at": datetime.now().isoformat(),
+            "reviewed_by": reviewer,
+        }
+        if notes:
+            update_data["review_notes"] = notes
+
+        if new_status == FeatureRequestStatus.IMPLEMENTED:
+            update_data["implemented_at"] = datetime.now().isoformat()
+
+        result = self.update(request_id, update_data)
+        if result and notes:
+            self.add_note(request_id, f"Status changed to {new_status.value}: {notes}", reviewer)
+        return result
+
+    def approve(self, request_id: str, reviewer: str = "Architect", notes: str = "") -> dict[str, Any] | None:
+        """Approve a feature request."""
+        return self.update_status(request_id, FeatureRequestStatus.APPROVED, reviewer, notes)
+
+    def reject(self, request_id: str, reviewer: str = "Architect", reason: str = "") -> dict[str, Any] | None:
+        """Reject a feature request."""
+        return self.update_status(request_id, FeatureRequestStatus.REJECTED, reviewer, reason)
+
+    def vote(self, request_id: str, agent_id: str, vote_type: str = "support") -> dict[str, Any] | None:
+        """Allow an agent to vote on a request."""
+        record = self.get_by_id(request_id)
+        if not record:
+            return None
+
+        votes = record.get("votes", [])
+        # Remove existing vote from this agent
+        votes = [v for v in votes if v.get("agent_id") != agent_id]
+        # Add new vote
+        votes.append({
+            "agent_id": agent_id,
+            "vote_type": vote_type,  # support, oppose, neutral
+            "timestamp": datetime.now().isoformat(),
+        })
+
+        return self.update(request_id, {"votes": votes})
+
+    def get_by_agent(self, agent_id: str) -> list[dict[str, Any]]:
+        """Get all requests from a specific agent."""
+        return self.query(agent_id=agent_id)
+
+    def get_pending(self) -> list[dict[str, Any]]:
+        """Get all pending requests awaiting review."""
+        all_requests = self.get_all()
+        return [r for r in all_requests if r.get("status") in [
+            FeatureRequestStatus.SUBMITTED.value,
+            FeatureRequestStatus.UNDER_REVIEW.value,
+        ]]
+
+    def get_approved(self) -> list[dict[str, Any]]:
+        """Get all approved requests not yet implemented."""
+        return self.query(status=FeatureRequestStatus.APPROVED.value)
+
+    def get_by_status(self, status: FeatureRequestStatus) -> list[dict[str, Any]]:
+        """Get requests by status."""
+        return self.query(status=status.value if isinstance(status, FeatureRequestStatus) else status)
+
+
+# =============================================================================
 # CONVENIENCE FUNCTIONS
 # =============================================================================
 
@@ -790,6 +917,7 @@ _testers_store: TestersStore | None = None
 _clients_store: ClientsStore | None = None
 _projects_store: ProjectsStore | None = None
 _finances_store: FinancesStore | None = None
+_agent_requests_store: AgentRequestsStore | None = None
 
 
 def get_ideas_store() -> IdeasStore:
@@ -830,3 +958,11 @@ def get_finances_store() -> FinancesStore:
     if _finances_store is None:
         _finances_store = FinancesStore()
     return _finances_store
+
+
+def get_agent_requests_store() -> AgentRequestsStore:
+    """Get the agent requests store singleton."""
+    global _agent_requests_store
+    if _agent_requests_store is None:
+        _agent_requests_store = AgentRequestsStore()
+    return _agent_requests_store

@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+
+{% block title %}Pending Feature Requests{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-6">
+        <h1 class="h3">Pending Feature Requests</h1>
+        <p class="text-muted">Review and approve agent requests for portal features and changes</p>
+    </div>
+    <div class="col-md-6 text-end">
+        <a href="{{ url_for('agent_requests_all') }}" class="btn btn-outline-primary">
+            <i class="bi bi-list-ul me-1"></i>All Requests
+        </a>
+        <a href="{{ url_for('agents_list') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-grid me-1"></i>Agent Portals
+        </a>
+    </div>
+</div>
+
+{% if requests %}
+<div class="alert alert-info">
+    <i class="bi bi-info-circle me-2"></i>
+    <strong>{{ requests | length }}</strong> request(s) pending review. Sorted by priority (critical first).
+</div>
+
+{% for req in requests %}
+<div class="card content-card mb-3">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <div>
+            <a href="{{ url_for('agent_portal', agent_id=req.agent_id) }}">
+                <span class="agent-badge agent-{{ req.agent_id }} me-2">{{ req._agent.role or req.agent_id }}</span>
+            </a>
+            <strong>{{ req.title }}</strong>
+        </div>
+        <div>
+            <span class="badge bg-{{ 'danger' if req.priority == 'critical' else 'warning' if req.priority == 'high' else 'info' if req.priority == 'medium' else 'secondary' }} me-2">
+                {{ req.priority | title }} Priority
+            </span>
+            <span class="badge bg-{{ 'warning' if req.status == 'submitted' else 'info' }}">
+                {{ req.status | replace('_', ' ') | title }}
+            </span>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-8">
+                <p class="mb-2">{{ req.description }}</p>
+
+                {% if req.justification %}
+                <p class="mb-2">
+                    <strong>Justification:</strong> {{ req.justification }}
+                </p>
+                {% endif %}
+
+                <div class="small text-muted">
+                    <span class="me-3"><i class="bi bi-tag me-1"></i>{{ req.request_type | title }}</span>
+                    {% if req.affected_area %}
+                    <span class="me-3"><i class="bi bi-geo-alt me-1"></i>{{ req.affected_area }}</span>
+                    {% endif %}
+                    <span><i class="bi bi-calendar me-1"></i>{{ req.created_at | datetime }}</span>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card bg-light">
+                    <div class="card-body">
+                        <h6 class="card-title">Quick Actions</h6>
+                        <form action="{{ url_for('agent_request_approve', request_id=req.id) }}" method="post" class="d-inline">
+                            <input type="hidden" name="reviewer" value="Architect">
+                            <button type="submit" class="btn btn-success btn-sm me-1">
+                                <i class="bi bi-check-circle me-1"></i>Approve
+                            </button>
+                        </form>
+                        <form action="{{ url_for('agent_request_reject', request_id=req.id) }}" method="post" class="d-inline">
+                            <input type="hidden" name="reviewer" value="Architect">
+                            <input type="hidden" name="reason" value="Does not align with current priorities">
+                            <button type="submit" class="btn btn-danger btn-sm me-1">
+                                <i class="bi bi-x-circle me-1"></i>Reject
+                            </button>
+                        </form>
+                        <a href="{{ url_for('agent_request_detail', request_id=req.id) }}" class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-eye me-1"></i>Details
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Votes Section -->
+        {% set votes = req.votes | default({}) %}
+        {% if votes.support or votes.oppose %}
+        <hr>
+        <div class="small">
+            <strong>Agent Votes:</strong>
+            {% if votes.support %}
+            <span class="text-success me-2">
+                <i class="bi bi-hand-thumbs-up me-1"></i>Support ({{ votes.support | length }}):
+                {% for agent_id in votes.support %}
+                <span class="badge bg-success">{{ agents.get(agent_id, {}).get('role', agent_id) }}</span>
+                {% endfor %}
+            </span>
+            {% endif %}
+            {% if votes.oppose %}
+            <span class="text-danger">
+                <i class="bi bi-hand-thumbs-down me-1"></i>Oppose ({{ votes.oppose | length }}):
+                {% for agent_id in votes.oppose %}
+                <span class="badge bg-danger">{{ agents.get(agent_id, {}).get('role', agent_id) }}</span>
+                {% endfor %}
+            </span>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endfor %}
+
+{% else %}
+<div class="card content-card">
+    <div class="card-body text-center py-5">
+        <i class="bi bi-check-circle display-4 text-success"></i>
+        <h4 class="mt-3">All Caught Up!</h4>
+        <p class="text-muted">No pending feature requests to review</p>
+        <a href="{{ url_for('agent_requests_all') }}" class="btn btn-outline-primary">
+            View All Requests
+        </a>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

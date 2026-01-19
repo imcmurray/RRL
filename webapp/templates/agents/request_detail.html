@@ -1,0 +1,227 @@
+{% extends "base.html" %}
+
+{% block title %}{{ request.title }} - Feature Request{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('agents_list') }}">Agent Portals</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('agent_portal', agent_id=request.agent_id) }}">{{ agent.role }}</a></li>
+                <li class="breadcrumb-item active">Request Details</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <!-- Request Details -->
+        <div class="card content-card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">{{ request.title }}</h5>
+                <span class="badge bg-{{ 'warning' if request.status == 'submitted' else 'info' if request.status == 'under_review' else 'success' if request.status in ['approved', 'implemented'] else 'danger' if request.status == 'rejected' else 'primary' if request.status == 'in_progress' else 'secondary' }}">
+                    {{ request.status | replace('_', ' ') | title }}
+                </span>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <span class="agent-badge agent-{{ agent.id }} me-2">{{ agent.role }}</span>
+                    <span class="badge bg-secondary me-2">{{ request.request_type | title }}</span>
+                    <span class="badge bg-{{ 'danger' if request.priority == 'critical' else 'warning' if request.priority == 'high' else 'info' if request.priority == 'medium' else 'secondary' }}">
+                        {{ request.priority | title }} Priority
+                    </span>
+                </div>
+
+                <h6>Description</h6>
+                <p>{{ request.description }}</p>
+
+                {% if request.justification %}
+                <h6>Business Justification</h6>
+                <p>{{ request.justification }}</p>
+                {% endif %}
+
+                {% if request.affected_area %}
+                <h6>Affected Area</h6>
+                <p>{{ request.affected_area }}</p>
+                {% endif %}
+
+                <div class="row text-muted small mt-4">
+                    <div class="col-md-6">
+                        <i class="bi bi-calendar me-1"></i>Created: {{ request.created_at | datetime }}
+                    </div>
+                    {% if request.reviewed_at %}
+                    <div class="col-md-6">
+                        <i class="bi bi-check-circle me-1"></i>Reviewed: {{ request.reviewed_at | datetime }}
+                        {% if request.reviewed_by %}by {{ request.reviewed_by }}{% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Votes -->
+        {% set votes = request.votes | default({}) %}
+        <div class="card content-card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-hand-thumbs-up me-2"></i>Agent Votes</h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-6 text-center">
+                        <h3 class="text-success">{{ votes.support | default([]) | length }}</h3>
+                        <p class="text-muted mb-0">Support</p>
+                    </div>
+                    <div class="col-6 text-center">
+                        <h3 class="text-danger">{{ votes.oppose | default([]) | length }}</h3>
+                        <p class="text-muted mb-0">Oppose</p>
+                    </div>
+                </div>
+
+                {% if votes.support %}
+                <div class="mb-2">
+                    <strong class="text-success">Supporters:</strong>
+                    {% for agent_id in votes.support %}
+                    <span class="badge bg-success">{{ agent_id }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                {% if votes.oppose %}
+                <div class="mb-2">
+                    <strong class="text-danger">Opposers:</strong>
+                    {% for agent_id in votes.oppose %}
+                    <span class="badge bg-danger">{{ agent_id }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                {% if request.status in ['submitted', 'under_review'] %}
+                <hr>
+                <h6>Cast a Vote</h6>
+                <form action="{{ url_for('agent_request_vote', request_id=request.id) }}" method="post" class="row g-2">
+                    <div class="col-md-6">
+                        <select name="agent_id" class="form-select" required>
+                            <option value="">Select Agent...</option>
+                            <option value="ceo">CEO</option>
+                            <option value="cfo">CFO</option>
+                            <option value="cito">CITO</option>
+                            <option value="sales">Sales</option>
+                            <option value="legal">Legal</option>
+                            <option value="dev_lead">DevLead</option>
+                            <option value="design_lead">DesignLead</option>
+                            <option value="qa_lead">QALead</option>
+                            <option value="pm">PM</option>
+                            <option value="customer_success">CustomerSuccess</option>
+                            <option value="marketing">Marketing</option>
+                            <option value="support">Support</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="btn-group w-100">
+                            <button type="submit" name="vote_type" value="support" class="btn btn-outline-success">
+                                <i class="bi bi-hand-thumbs-up me-1"></i>Support
+                            </button>
+                            <button type="submit" name="vote_type" value="oppose" class="btn btn-outline-danger">
+                                <i class="bi bi-hand-thumbs-down me-1"></i>Oppose
+                            </button>
+                        </div>
+                    </div>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Review Notes -->
+        {% if request.review_notes %}
+        <div class="card content-card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-chat-square-text me-2"></i>Review Notes</h5>
+            </div>
+            <div class="card-body">
+                {% for note in request.review_notes %}
+                <div class="mb-3 pb-3 border-bottom">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <p class="mb-1">{{ note.note }}</p>
+                        <small class="text-muted">{{ note.timestamp | datetime }}</small>
+                    </div>
+                    <small class="text-muted">- {{ note.reviewer }}</small>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="col-lg-4">
+        <!-- Actions -->
+        <div class="card content-card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-gear me-2"></i>Actions</h5>
+            </div>
+            <div class="card-body">
+                {% if request.status in ['submitted', 'under_review'] %}
+                <h6>Quick Decisions</h6>
+                <div class="d-grid gap-2 mb-3">
+                    <form action="{{ url_for('agent_request_approve', request_id=request.id) }}" method="post">
+                        <input type="hidden" name="reviewer" value="Architect">
+                        <button type="submit" class="btn btn-success w-100">
+                            <i class="bi bi-check-circle me-1"></i>Approve Request
+                        </button>
+                    </form>
+                    <form action="{{ url_for('agent_request_reject', request_id=request.id) }}" method="post">
+                        <input type="hidden" name="reviewer" value="Architect">
+                        <input type="hidden" name="reason" value="Does not align with current priorities">
+                        <button type="submit" class="btn btn-danger w-100">
+                            <i class="bi bi-x-circle me-1"></i>Reject Request
+                        </button>
+                    </form>
+                </div>
+                {% endif %}
+
+                <h6>Update Status</h6>
+                <form action="{{ url_for('agent_request_update_status', request_id=request.id) }}" method="post">
+                    <input type="hidden" name="reviewer" value="Architect">
+                    <div class="mb-2">
+                        <select name="status" class="form-select" required>
+                            <option value="submitted" {% if request.status == 'submitted' %}selected{% endif %}>Submitted</option>
+                            <option value="under_review" {% if request.status == 'under_review' %}selected{% endif %}>Under Review</option>
+                            <option value="approved" {% if request.status == 'approved' %}selected{% endif %}>Approved</option>
+                            <option value="rejected" {% if request.status == 'rejected' %}selected{% endif %}>Rejected</option>
+                            <option value="in_progress" {% if request.status == 'in_progress' %}selected{% endif %}>In Progress</option>
+                            <option value="implemented" {% if request.status == 'implemented' %}selected{% endif %}>Implemented</option>
+                            <option value="deferred" {% if request.status == 'deferred' %}selected{% endif %}>Deferred</option>
+                        </select>
+                    </div>
+                    <div class="mb-2">
+                        <textarea name="notes" class="form-control" rows="2" placeholder="Optional notes..."></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-arrow-repeat me-1"></i>Update Status
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Agent Info -->
+        <div class="card content-card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-person me-2"></i>Requesting Agent</h5>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-3">
+                    <span class="agent-badge agent-{{ agent.id }}" style="font-size: 1.2rem; padding: 0.5rem 1rem;">{{ agent.role }}</span>
+                </div>
+                <h6 class="text-center">{{ agent.name }}</h6>
+                <p class="small text-muted text-center">{{ agent.description }}</p>
+                <div class="d-grid">
+                    <a href="{{ url_for('agent_portal', agent_id=agent.id) }}" class="btn btn-outline-primary btn-sm">
+                        View Portal
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

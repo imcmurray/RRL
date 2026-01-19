@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block title %}{% if feature_request %}Edit{% else %}New{% endif %} Feature Request - {{ agent.role }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('agents_list') }}">Agent Portals</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('agent_portal', agent_id=agent.id) }}">{{ agent.role }}</a></li>
+                <li class="breadcrumb-item active">{% if feature_request %}Edit{% else %}New{% endif %} Request</li>
+            </ol>
+        </nav>
+        <h1 class="h3">{% if feature_request %}Edit{% else %}New{% endif %} Feature Request</h1>
+        <p class="text-muted">Submit a request for features, changes, or improvements to the {{ agent.role }} portal</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card content-card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-pencil-square me-2"></i>Request Details</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" action="{{ url_for('agent_request_new', agent_id=agent.id) }}">
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Request Title <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="title" name="title" required
+                               value="{{ feature_request.title if feature_request else '' }}"
+                               placeholder="Brief, descriptive title for your request">
+                        <div class="form-text">A clear, concise title that summarizes what you need</div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="request_type" class="form-label">Request Type <span class="text-danger">*</span></label>
+                            <select class="form-select" id="request_type" name="request_type" required>
+                                <option value="feature" {% if feature_request and feature_request.request_type == 'feature' %}selected{% endif %}>New Feature</option>
+                                <option value="enhancement" {% if feature_request and feature_request.request_type == 'enhancement' %}selected{% endif %}>Enhancement</option>
+                                <option value="data" {% if feature_request and feature_request.request_type == 'data' %}selected{% endif %}>Data/Report</option>
+                                <option value="integration" {% if feature_request and feature_request.request_type == 'integration' %}selected{% endif %}>Integration</option>
+                                <option value="ui" {% if feature_request and feature_request.request_type == 'ui' %}selected{% endif %}>UI/UX Change</option>
+                                <option value="automation" {% if feature_request and feature_request.request_type == 'automation' %}selected{% endif %}>Automation</option>
+                                <option value="other" {% if feature_request and feature_request.request_type == 'other' %}selected{% endif %}>Other</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="priority" class="form-label">Priority <span class="text-danger">*</span></label>
+                            <select class="form-select" id="priority" name="priority" required>
+                                <option value="low" {% if feature_request and feature_request.priority == 'low' %}selected{% endif %}>Low - Nice to have</option>
+                                <option value="medium" {% if not feature_request or feature_request.priority == 'medium' %}selected{% endif %}>Medium - Would improve workflow</option>
+                                <option value="high" {% if feature_request and feature_request.priority == 'high' %}selected{% endif %}>High - Significantly impacts work</option>
+                                <option value="critical" {% if feature_request and feature_request.priority == 'critical' %}selected{% endif %}>Critical - Blocking current work</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description <span class="text-danger">*</span></label>
+                        <textarea class="form-control" id="description" name="description" rows="5" required
+                                  placeholder="Describe what you need and why...">{{ feature_request.description if feature_request else '' }}</textarea>
+                        <div class="form-text">Provide a detailed description of the feature or change you're requesting</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="justification" class="form-label">Business Justification</label>
+                        <textarea class="form-control" id="justification" name="justification" rows="3"
+                                  placeholder="How will this improve your ability to perform your role?">{{ feature_request.justification if feature_request else '' }}</textarea>
+                        <div class="form-text">Explain the business value or productivity improvement this would provide</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="affected_area" class="form-label">Affected Area</label>
+                        <input type="text" class="form-control" id="affected_area" name="affected_area"
+                               value="{{ feature_request.affected_area if feature_request else '' }}"
+                               placeholder="e.g., Dashboard, Reports, Data Entry, etc.">
+                        <div class="form-text">Which part of the portal or system would this affect?</div>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-send me-1"></i>{% if feature_request %}Update{% else %}Submit{% endif %} Request
+                        </button>
+                        <a href="{{ url_for('agent_portal', agent_id=agent.id) }}" class="btn btn-outline-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card content-card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-info-circle me-2"></i>Request Guidelines</h6>
+            </div>
+            <div class="card-body">
+                <ul class="small mb-0">
+                    <li class="mb-2">Be specific about what you need</li>
+                    <li class="mb-2">Explain the business value</li>
+                    <li class="mb-2">Consider impact on other agents</li>
+                    <li class="mb-2">Provide examples where possible</li>
+                    <li class="mb-2">Requests are reviewed by the Architect</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="card content-card">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-diagram-3 me-2"></i>Review Process</h6>
+            </div>
+            <div class="card-body">
+                <ol class="small mb-0">
+                    <li class="mb-2"><strong>Submitted</strong> - Request received</li>
+                    <li class="mb-2"><strong>Under Review</strong> - Being evaluated</li>
+                    <li class="mb-2"><strong>Approved/Rejected</strong> - Decision made</li>
+                    <li class="mb-2"><strong>In Progress</strong> - Being implemented</li>
+                    <li class="mb-2"><strong>Implemented</strong> - Complete!</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

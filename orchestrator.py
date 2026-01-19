@@ -24,7 +24,7 @@ from src.utils import (
     load_file,
     format_date,
 )
-from src.data_cli import ideas, testers, clients, projects, finances, report
+from src.data_cli import ideas, testers, clients, projects, finances, report, requests
 
 console = Console()
 
@@ -1025,6 +1025,7 @@ cli.add_command(clients)
 cli.add_command(projects)
 cli.add_command(finances)
 cli.add_command(report)
+cli.add_command(requests)
 
 
 if __name__ == "__main__":
