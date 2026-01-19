@@ -324,12 +324,45 @@ Appended to `decisions/decisions.json`:
    python orchestrator.py decisions --last 5
    ```
 
+## Data Management
+
+The orchestrator includes a complete data management system for tracking business entities:
+
+```bash
+# Ideas management
+python orchestrator.py ideas list
+python orchestrator.py ideas add --name "App Name" --submitter-name "John" --submitter-email "john@example.com" --description "Description"
+python orchestrator.py ideas status <id> approved
+
+# Testers management
+python orchestrator.py testers list
+python orchestrator.py testers add --name "Jane" --email "jane@example.com" --devices "iPhone:14:iOS 17" --payment-method paypal --payment-details "jane@paypal.com"
+python orchestrator.py testers approve <id>
+
+# Clients management
+python orchestrator.py clients list
+python orchestrator.py clients add --name "Contact" --company "Company" --email "contact@company.com"
+
+# Projects management
+python orchestrator.py projects list --active
+
+# Finances management
+python orchestrator.py finances invoices
+python orchestrator.py finances create-invoice --client <id> --project <id> --amount 10000 --description "Milestone 1" --due-date 2026-02-15
+
+# Reports
+python orchestrator.py report all
+python orchestrator.py ideas report
+python orchestrator.py finances report --period 2026-01
+```
+
 ## Documentation
 
 For detailed information on how the system works:
 
 - **[Architecture Guide](docs/ARCHITECTURE.md)** — System architecture, context sharing, agent interaction patterns
 - **[Process Flows](docs/PROCESS.md)** — Idea submission, project lifecycle, decision making, operational processes
+- **[Data Management](docs/DATA_MANAGEMENT.md)** — Ideas, testers, clients, projects, finances, and reports
 
 ## License
 

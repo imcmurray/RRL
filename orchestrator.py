@@ -24,6 +24,7 @@ from src.utils import (
     load_file,
     format_date,
 )
+from src.data_cli import ideas, testers, clients, projects, finances, report
 
 console = Console()
 
@@ -1015,6 +1016,15 @@ def interactive():
         except Exception as e:
             console.print(f"[red]Error: {e}[/red]")
             continue
+
+
+# Register data management command groups
+cli.add_command(ideas)
+cli.add_command(testers)
+cli.add_command(clients)
+cli.add_command(projects)
+cli.add_command(finances)
+cli.add_command(report)
 
 
 if __name__ == "__main__":
