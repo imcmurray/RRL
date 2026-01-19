@@ -177,10 +177,33 @@ rinse-repeat-orchestrator/
 │   ├── active_projects.md
 │   ├── pending_ideas.md
 │   └── architect_notes.md
+├── data/                    # JSON data stores
+│   ├── ideas.json
+│   ├── testers.json
+│   ├── clients.json
+│   ├── projects.json
+│   ├── finances.json
+│   └── agent_requests.json
 ├── src/                     # Source code
 │   ├── agent.py
 │   ├── meeting.py
+│   ├── data_store.py
+│   ├── data_cli.py
+│   ├── reports.py
 │   └── utils.py
+├── webapp/                  # Flask web dashboard
+│   ├── app.py
+│   ├── templates/
+│   │   ├── agents/          # Agent portal templates
+│   │   ├── ideas/
+│   │   ├── testers/
+│   │   ├── clients/
+│   │   ├── projects/
+│   │   ├── finances/
+│   │   └── ...
+│   └── static/
+│       ├── css/
+│       └── js/
 ├── orchestrator.py          # Main CLI
 ├── config.py                # Configuration
 ├── requirements.txt
@@ -356,6 +379,71 @@ python orchestrator.py ideas report
 python orchestrator.py finances report --period 2026-01
 ```
 
+## Agent Portals
+
+Each of the 12 agents has a dedicated portal in the web dashboard where they can manage their workspace and request new features.
+
+### Web Dashboard
+
+Start the web dashboard:
+```bash
+cd webapp
+python app.py
+```
+
+Then visit `http://localhost:5000/agents` to access agent portals.
+
+### Portal Features
+
+Each agent portal includes:
+- **Responsibilities & Metrics** — View assigned responsibilities and key performance indicators
+- **Feature Requests** — Submit, track, and manage requests for new tools and improvements
+- **Recent Activity** — See recent actions and request status changes
+
+### Feature Request Workflow
+
+Agents can request changes to their section of the dashboard:
+
+1. **Submit** — Agent describes what they need with business justification
+2. **Vote** — Other agents can support or oppose requests
+3. **Review** — The Architect reviews pending requests
+4. **Approve/Reject** — Decision with feedback
+5. **Implement** — Approved requests are built
+
+### CLI Commands for Requests
+
+```bash
+# List all feature requests
+python orchestrator.py requests list
+
+# Show pending requests for review
+python orchestrator.py requests pending
+
+# Create a request for an agent
+python orchestrator.py requests create --agent ceo --title "Revenue Dashboard" \
+  --description "Need a real-time revenue dashboard" --priority high
+
+# Approve a request
+python orchestrator.py requests approve <request_id>
+
+# Reject a request
+python orchestrator.py requests reject <request_id> --reason "Not aligned with priorities"
+
+# Update request status
+python orchestrator.py requests status <request_id> in_progress
+```
+
+### Request Types
+
+| Type | Description |
+|------|-------------|
+| **Feature** | New functionality |
+| **Enhancement** | Improvements to existing features |
+| **Data/Report** | New metrics, dashboards, or reports |
+| **Integration** | Connections to external systems |
+| **UI/UX** | Interface improvements |
+| **Automation** | Automated workflows or notifications |
+
 ## Documentation
 
 For detailed information on how the system works:
@@ -363,6 +451,7 @@ For detailed information on how the system works:
 - **[Architecture Guide](docs/ARCHITECTURE.md)** — System architecture, context sharing, agent interaction patterns
 - **[Process Flows](docs/PROCESS.md)** — Idea submission, project lifecycle, decision making, operational processes
 - **[Data Management](docs/DATA_MANAGEMENT.md)** — Ideas, testers, clients, projects, finances, and reports
+- **[Agent Portals](docs/AGENT_PORTALS.md)** — Portal system, feature requests, and agent workspace management
 
 ## License
 
