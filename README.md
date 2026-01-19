@@ -324,6 +324,13 @@ Appended to `decisions/decisions.json`:
    python orchestrator.py decisions --last 5
    ```
 
+## Documentation
+
+For detailed information on how the system works:
+
+- **[Architecture Guide](docs/ARCHITECTURE.md)** — System architecture, context sharing, agent interaction patterns
+- **[Process Flows](docs/PROCESS.md)** — Idea submission, project lifecycle, decision making, operational processes
+
 ## License
 
 MIT License - See LICENSE file for details.
