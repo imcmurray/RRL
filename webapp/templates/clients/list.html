@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}Clients{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-6">
+        <h1 class="h3">Clients</h1>
+        <p class="text-muted">Manage client relationships and contacts</p>
+    </div>
+    <div class="col-md-6 text-end">
+        <a href="{{ url_for('clients_new') }}" class="btn btn-primary">
+            <i class="bi bi-building-add me-1"></i>Add Client
+        </a>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="card content-card mb-4">
+    <div class="card-body">
+        <div class="row align-items-center">
+            <div class="col-md-4 mb-2 mb-md-0">
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input type="text" class="form-control" id="searchInput" placeholder="Search clients...">
+                </div>
+            </div>
+            <div class="col-md-8 text-end">
+                <span class="text-muted">{{ clients | length }} client(s) found</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Clients Table -->
+<div class="table-container">
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>Company</th>
+                <th>Contact</th>
+                <th>Email</th>
+                <th>Projects</th>
+                <th>Total Value</th>
+                <th>Since</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for client in clients %}
+            <tr>
+                <td>
+                    <a href="{{ url_for('clients_detail', client_id=client.id) }}" class="fw-semibold">{{ client.company_name or client.name }}</a>
+                </td>
+                <td>{{ client.contact_name or client.name }}</td>
+                <td>
+                    <a href="mailto:{{ client.email }}">{{ client.email }}</a>
+                </td>
+                <td>
+                    <span class="badge bg-primary">{{ client.project_count or 0 }}</span>
+                </td>
+                <td>{{ client.total_value | currency if client.total_value else '-' }}</td>
+                <td>{{ client.created_at | datetime }}</td>
+                <td>
+                    <div class="btn-group btn-group-sm">
+                        <a href="{{ url_for('clients_detail', client_id=client.id) }}" class="btn btn-outline-primary btn-action" title="View">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                        <a href="{{ url_for('clients_edit', client_id=client.id) }}" class="btn btn-outline-secondary btn-action" title="Edit">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                    </div>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="7" class="text-center py-5">
+                    <i class="bi bi-building display-4 text-muted"></i>
+                    <p class="text-muted mt-2">No clients found</p>
+                    <a href="{{ url_for('clients_new') }}" class="btn btn-primary">Add First Client</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

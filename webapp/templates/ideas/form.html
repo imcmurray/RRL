@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'Edit' if idea else 'New' }} Idea{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('ideas_list') }}">Ideas</a></li>
+                <li class="breadcrumb-item active">{{ 'Edit' if idea else 'Submit New' }} Idea</li>
+            </ol>
+        </nav>
+        <h1 class="h3">{{ 'Edit Idea' if idea else 'Submit New App Idea' }}</h1>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card form-card">
+            <div class="card-body">
+                <form action="{{ url_for('ideas_edit', idea_id=idea.id) if idea else url_for('ideas_create') }}" method="post" class="needs-validation" novalidate>
+
+                    <h5 class="mb-4"><i class="bi bi-lightbulb me-2"></i>Basic Information</h5>
+
+                    <div class="mb-3">
+                        <label for="name" class="form-label">App Name *</label>
+                        <input type="text" class="form-control" id="name" name="name"
+                               value="{{ idea.name if idea else '' }}" required>
+                        <div class="invalid-feedback">Please provide an app name.</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Brief Description *</label>
+                        <textarea class="form-control" id="description" name="description" rows="3" required>{{ idea.description if idea else '' }}</textarea>
+                        <div class="form-text">Describe your app idea in 2-3 sentences.</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="problem_statement" class="form-label">Problem Statement</label>
+                        <textarea class="form-control" id="problem_statement" name="problem_statement" rows="3">{{ idea.problem_statement if idea else '' }}</textarea>
+                        <div class="form-text">What problem does this app solve?</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="proposed_solution" class="form-label">Proposed Solution</label>
+                        <textarea class="form-control" id="proposed_solution" name="proposed_solution" rows="3">{{ idea.proposed_solution if idea else '' }}</textarea>
+                        <div class="form-text">How will the app solve this problem?</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="target_audience" class="form-label">Target Audience</label>
+                        <input type="text" class="form-control" id="target_audience" name="target_audience"
+                               value="{{ idea.target_audience if idea else '' }}">
+                        <div class="form-text">Who is the intended user of this app?</div>
+                    </div>
+
+                    <hr class="my-4">
+                    <h5 class="mb-4"><i class="bi bi-gear me-2"></i>Technical Details</h5>
+
+                    <div class="mb-3">
+                        <label class="form-label">Platforms *</label>
+                        <div>
+                            {% set platforms = idea.platforms if idea else [] %}
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="checkbox" name="platforms" value="iOS"
+                                       id="platform-ios" {{ 'checked' if 'iOS' in platforms }}>
+                                <label class="form-check-label" for="platform-ios">iOS</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="checkbox" name="platforms" value="Android"
+                                       id="platform-android" {{ 'checked' if 'Android' in platforms }}>
+                                <label class="form-check-label" for="platform-android">Android</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="checkbox" name="platforms" value="Web"
+                                       id="platform-web" {{ 'checked' if 'Web' in platforms }}>
+                                <label class="form-check-label" for="platform-web">Web</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="revenue_model" class="form-label">Revenue Model</label>
+                            <select class="form-select" id="revenue_model" name="revenue_model">
+                                <option value="">Select...</option>
+                                <option value="Free" {{ 'selected' if idea and idea.revenue_model == 'Free' }}>Free</option>
+                                <option value="Freemium" {{ 'selected' if idea and idea.revenue_model == 'Freemium' }}>Freemium</option>
+                                <option value="Paid" {{ 'selected' if idea and idea.revenue_model == 'Paid' }}>Paid</option>
+                                <option value="Subscription" {{ 'selected' if idea and idea.revenue_model == 'Subscription' }}>Subscription</option>
+                                <option value="Ad-supported" {{ 'selected' if idea and idea.revenue_model == 'Ad-supported' }}>Ad-supported</option>
+                                <option value="In-app purchases" {{ 'selected' if idea and idea.revenue_model == 'In-app purchases' }}>In-app Purchases</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="budget" class="form-label">Budget ($)</label>
+                            <input type="number" class="form-control" id="budget" name="budget"
+                                   value="{{ idea.budget if idea else '' }}" min="0" step="100">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="timeline" class="form-label">Desired Timeline</label>
+                        <input type="text" class="form-control" id="timeline" name="timeline"
+                               value="{{ idea.timeline if idea else '' }}" placeholder="e.g., 3 months, Q2 2024">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="features" class="form-label">Key Features</label>
+                        <textarea class="form-control" id="features" name="features" rows="4"
+                                  placeholder="One feature per line">{% if idea and idea.features %}{% for f in idea.features %}{{ f }}
+{% endfor %}{% endif %}</textarea>
+                        <div class="form-text">List the main features, one per line.</div>
+                    </div>
+
+                    <hr class="my-4">
+                    <h5 class="mb-4"><i class="bi bi-person me-2"></i>Submitter Information</h5>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="submitter_name" class="form-label">Your Name *</label>
+                            <input type="text" class="form-control" id="submitter_name" name="submitter_name"
+                                   value="{{ idea.submitter_name if idea else '' }}" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="submitter_email" class="form-label">Email *</label>
+                            <input type="email" class="form-control" id="submitter_email" name="submitter_email"
+                                   value="{{ idea.submitter_email if idea else '' }}" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="submitter_phone" class="form-label">Phone</label>
+                        <input type="tel" class="form-control" id="submitter_phone" name="submitter_phone"
+                               value="{{ idea.submitter_phone if idea else '' }}">
+                    </div>
+
+                    <hr class="my-4">
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('ideas_list') }}" class="btn btn-outline-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle me-1"></i>{{ 'Update' if idea else 'Submit' }} Idea
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card content-card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i>Submission Guidelines</h5>
+            </div>
+            <div class="card-body">
+                <h6>What happens next?</h6>
+                <ol class="small">
+                    <li>Your idea will be reviewed by our team</li>
+                    <li>We'll evaluate feasibility and market potential</li>
+                    <li>You'll receive feedback within 1-2 weeks</li>
+                    <li>If approved, we'll discuss next steps</li>
+                </ol>
+
+                <h6>What makes a good idea?</h6>
+                <ul class="small">
+                    <li>Solves a real problem</li>
+                    <li>Has a clear target audience</li>
+                    <li>Realistic scope for MVP</li>
+                    <li>Viable revenue model</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

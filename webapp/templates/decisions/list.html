@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}Decisions Log{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-6">
+        <h1 class="h3">Decisions Log</h1>
+        <p class="text-muted">Track decisions made during AI agent meetings</p>
+    </div>
+</div>
+
+<!-- Summary Cards -->
+<div class="row mb-4">
+    <div class="col-md-4 mb-3">
+        <div class="card stats-card">
+            <div class="card-body finance-metric">
+                <div class="value text-primary">{{ total_decisions }}</div>
+                <div class="label">Total Decisions</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="card stats-card">
+            <div class="card-body finance-metric">
+                <div class="value text-success">{{ approved_decisions }}</div>
+                <div class="label">Approved</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="card stats-card">
+            <div class="card-body finance-metric">
+                <div class="value text-warning">{{ pending_decisions }}</div>
+                <div class="label">Pending</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Decisions List -->
+<div class="card content-card">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-check2-square me-2"></i>All Decisions</h5>
+    </div>
+    <div class="card-body">
+        {% for decision in decisions %}
+        <div class="decision-item {{ 'decision-pending' if not decision.finalized else '' }}">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <h6 class="mb-1">{{ decision.title }}</h6>
+                    <p class="mb-2">{{ decision.description }}</p>
+                    <div class="small text-muted">
+                        {% if decision.meeting_id %}
+                        <a href="{{ url_for('meetings_detail', meeting_id=decision.meeting_id) }}">
+                            <i class="bi bi-link-45deg me-1"></i>View Meeting
+                        </a> |
+                        {% endif %}
+                        {{ decision.date | datetime if decision.date else 'Date unknown' }}
+                        {% if decision.owner %} | Owner: <strong>{{ decision.owner }}</strong>{% endif %}
+                    </div>
+                </div>
+                <span class="badge bg-{{ 'success' if decision.finalized else 'warning' }}">
+                    {{ 'Approved' if decision.finalized else 'Pending' }}
+                </span>
+            </div>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="bi bi-check2-square display-4 text-muted"></i>
+            <p class="text-muted mt-2">No decisions recorded yet</p>
+            <p class="small text-muted">Decisions are logged when AI agents make recommendations during meetings</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

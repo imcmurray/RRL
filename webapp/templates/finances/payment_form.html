@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block title %}Record Payment{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('finances_dashboard') }}">Finances</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('finances_payments') }}">Payments</a></li>
+                <li class="breadcrumb-item active">Record Payment</li>
+            </ol>
+        </nav>
+        <h1 class="h3">Record Payment</h1>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card form-card">
+            <div class="card-body">
+                <form action="{{ url_for('finances_payment_create') }}" method="post" class="needs-validation" novalidate>
+
+                    <h5 class="mb-4"><i class="bi bi-cash me-2"></i>Payment Details</h5>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="type" class="form-label">Payment Type *</label>
+                            <select class="form-select" id="type" name="type" required>
+                                <option value="income" selected>Income (Received)</option>
+                                <option value="expense">Expense (Paid Out)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="amount" class="form-label">Amount ($) *</label>
+                            <input type="number" class="form-control" id="amount" name="amount"
+                                   value="{{ invoice.amount if invoice else '' }}" min="0" step="0.01" required>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="date" class="form-label">Payment Date *</label>
+                            <input type="date" class="form-control" id="date" name="date" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="method" class="form-label">Payment Method</label>
+                            <select class="form-select" id="method" name="method">
+                                <option value="">Select...</option>
+                                <option value="Bank Transfer">Bank Transfer</option>
+                                <option value="Credit Card">Credit Card</option>
+                                <option value="PayPal">PayPal</option>
+                                <option value="Check">Check</option>
+                                <option value="Cash">Cash</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-3" id="invoiceField">
+                        <label for="invoice_id" class="form-label">Link to Invoice</label>
+                        <select class="form-select" id="invoice_id" name="invoice_id">
+                            <option value="">No invoice</option>
+                            {% for inv in invoices %}
+                            <option value="{{ inv.id }}" {% if request.args.get('invoice_id') == inv.id %}selected{% endif %}>
+                                {{ inv.invoice_number or inv.id[:8] }} - {{ inv.client_name }} ({{ inv.amount | currency }})
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-3" id="clientField">
+                        <label for="client_id" class="form-label">Client</label>
+                        <select class="form-select" id="client_id" name="client_id">
+                            <option value="">Select client...</option>
+                            {% for client in clients %}
+                            <option value="{{ client.id }}">{{ client.company_name or client.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-3" id="vendorField" style="display:none;">
+                        <label for="vendor" class="form-label">Vendor/Payee</label>
+                        <input type="text" class="form-control" id="vendor" name="vendor"
+                               placeholder="Who was paid">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea class="form-control" id="description" name="description" rows="2"
+                                  placeholder="Payment description or notes"></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="reference" class="form-label">Reference/Transaction ID</label>
+                        <input type="text" class="form-control" id="reference" name="reference"
+                               placeholder="Bank reference, check number, etc.">
+                    </div>
+
+                    <hr class="my-4">
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('finances_payments') }}" class="btn btn-outline-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle me-1"></i>Record Payment
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('type').addEventListener('change', function() {
+    var isExpense = this.value === 'expense';
+    document.getElementById('invoiceField').style.display = isExpense ? 'none' : 'block';
+    document.getElementById('clientField').style.display = isExpense ? 'none' : 'block';
+    document.getElementById('vendorField').style.display = isExpense ? 'block' : 'none';
+});
+</script>
+{% endblock %}

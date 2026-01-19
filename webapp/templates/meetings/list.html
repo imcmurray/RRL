@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block title %}Meetings{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-6">
+        <h1 class="h3">Meeting History</h1>
+        <p class="text-muted">AI agent meeting transcripts and outcomes</p>
+    </div>
+    <div class="col-md-6 text-end">
+        <div class="btn-group">
+            <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown">
+                <i class="bi bi-camera-video me-1"></i>Start Meeting
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+                <li><a class="dropdown-item" href="#" onclick="runMeeting('idea-review', '')">Idea Review</a></li>
+                <li><a class="dropdown-item" href="#" onclick="runMeeting('exec-meeting', '')">Executive Meeting</a></li>
+                <li><a class="dropdown-item" href="#" onclick="runMeeting('tech-meeting', '')">Technical Meeting</a></li>
+                <li><a class="dropdown-item" href="#" onclick="runMeeting('project-meeting', '')">Project Meeting</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="#" onclick="runMeeting('all-hands', '')">All Hands</a></li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- Meeting Types -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="card content-card text-center">
+            <div class="card-body py-4">
+                <i class="bi bi-lightbulb display-5 text-primary mb-2"></i>
+                <h6>Idea Reviews</h6>
+                <p class="small text-muted mb-2">Evaluate new app ideas</p>
+                <button class="btn btn-sm btn-outline-primary" onclick="runMeeting('idea-review', '')">Start</button>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card content-card text-center">
+            <div class="card-body py-4">
+                <i class="bi bi-briefcase display-5 text-success mb-2"></i>
+                <h6>Executive</h6>
+                <p class="small text-muted mb-2">Strategic discussions</p>
+                <button class="btn btn-sm btn-outline-success" onclick="runMeeting('exec-meeting', '')">Start</button>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card content-card text-center">
+            <div class="card-body py-4">
+                <i class="bi bi-gear display-5 text-info mb-2"></i>
+                <h6>Technical</h6>
+                <p class="small text-muted mb-2">Engineering decisions</p>
+                <button class="btn btn-sm btn-outline-info" onclick="runMeeting('tech-meeting', '')">Start</button>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card content-card text-center">
+            <div class="card-body py-4">
+                <i class="bi bi-people display-5 text-warning mb-2"></i>
+                <h6>All Hands</h6>
+                <p class="small text-muted mb-2">Full team updates</p>
+                <button class="btn btn-sm btn-outline-warning" onclick="runMeeting('all-hands', '')">Start</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Meeting History -->
+<div class="card content-card">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-clock-history me-2"></i>Recent Meetings</h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Topic</th>
+                        <th>Type</th>
+                        <th>Participants</th>
+                        <th>Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for meeting in meetings %}
+                    <tr>
+                        <td>
+                            <a href="{{ url_for('meetings_detail', meeting_id=meeting.id) }}">{{ meeting.topic }}</a>
+                        </td>
+                        <td>
+                            <span class="badge bg-secondary">{{ meeting.type | replace('_', ' ') | title }}</span>
+                        </td>
+                        <td>
+                            <div class="meeting-participants">
+                                {% for agent in meeting.participants[:3] %}
+                                <span class="agent-badge agent-{{ agent | lower | replace(' ', '_') }} me-1">{{ agent }}</span>
+                                {% endfor %}
+                                {% if meeting.participants | length > 3 %}
+                                <span class="badge bg-light text-dark">+{{ meeting.participants | length - 3 }}</span>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td>{{ meeting.date | datetime }}</td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <a href="{{ url_for('meetings_detail', meeting_id=meeting.id) }}" class="btn btn-outline-primary btn-action">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="text-center py-5">
+                            <i class="bi bi-camera-video display-4 text-muted"></i>
+                            <p class="text-muted mt-2">No meetings recorded yet</p>
+                            <button class="btn btn-primary" onclick="runMeeting('exec-meeting', 'First Team Meeting')">
+                                Start First Meeting
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

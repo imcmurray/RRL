@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+
+{% block title %}Review: {{ idea.name }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('ideas_list') }}">Ideas</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('ideas_detail', idea_id=idea.id) }}">{{ idea.name }}</a></li>
+                <li class="breadcrumb-item active">Review</li>
+            </ol>
+        </nav>
+        <h1 class="h3">Review Idea: {{ idea.name }}</h1>
+        <p class="text-muted">Evaluate this idea with the AI agent team</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <!-- Idea Summary -->
+        <div class="card content-card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-file-text me-2"></i>Idea Summary</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Name:</strong> {{ idea.name }}</p>
+                        <p><strong>Submitter:</strong> {{ idea.submitter_name }}</p>
+                        <p><strong>Platforms:</strong> {{ idea.platforms | join(', ') if idea.platforms else '-' }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Budget:</strong> {{ idea.budget | currency if idea.budget else 'Not specified' }}</p>
+                        <p><strong>Revenue Model:</strong> {{ idea.revenue_model or '-' }}</p>
+                        <p><strong>Timeline:</strong> {{ idea.timeline or '-' }}</p>
+                    </div>
+                </div>
+                <hr>
+                <p><strong>Description:</strong></p>
+                <p>{{ idea.description }}</p>
+                {% if idea.problem_statement %}
+                <p><strong>Problem:</strong></p>
+                <p>{{ idea.problem_statement }}</p>
+                {% endif %}
+                {% if idea.proposed_solution %}
+                <p><strong>Solution:</strong></p>
+                <p>{{ idea.proposed_solution }}</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Review Form -->
+        <div class="card form-card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-clipboard-check me-2"></i>Submit Review</h5>
+            </div>
+            <div class="card-body">
+                <form action="{{ url_for('ideas_submit_review', idea_id=idea.id) }}" method="post">
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Decision *</label>
+                        <div class="btn-group w-100" role="group">
+                            <input type="radio" class="btn-check" name="decision" id="approve" value="approved" required>
+                            <label class="btn btn-outline-success" for="approve">
+                                <i class="bi bi-check-circle me-1"></i>Approve
+                            </label>
+                            <input type="radio" class="btn-check" name="decision" id="decline" value="declined">
+                            <label class="btn btn-outline-danger" for="decline">
+                                <i class="bi bi-x-circle me-1"></i>Decline
+                            </label>
+                            <input type="radio" class="btn-check" name="decision" id="needs_info" value="under_review">
+                            <label class="btn btn-outline-warning" for="needs_info">
+                                <i class="bi bi-question-circle me-1"></i>Needs More Info
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="review_notes" class="form-label">Review Notes *</label>
+                        <textarea class="form-control" id="review_notes" name="review_notes" rows="5" required
+                                  placeholder="Provide detailed feedback on this idea..."></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="concerns" class="form-label">Concerns (if declining)</label>
+                        <textarea class="form-control" id="concerns" name="concerns" rows="3"
+                                  placeholder="What are the main concerns or reasons for declining?"></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="suggestions" class="form-label">Suggestions for Improvement</label>
+                        <textarea class="form-control" id="suggestions" name="suggestions" rows="3"
+                                  placeholder="How could this idea be improved?"></textarea>
+                    </div>
+
+                    <div class="mb-4">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="send_email" name="send_email" value="1" checked>
+                            <label class="form-check-label" for="send_email">
+                                Send notification email to submitter
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('ideas_detail', idea_id=idea.id) }}" class="btn btn-outline-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-send me-1"></i>Submit Review
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <!-- AI Agent Evaluation -->
+        <div class="card content-card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-robot me-2"></i>Run AI Evaluation</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted small">Get feedback from the AI agent team before making a decision.</p>
+
+                <div class="d-grid gap-2">
+                    <button type="button" class="btn btn-outline-primary" onclick="runMeeting('idea-review', '{{ idea.name }}')">
+                        <i class="bi bi-people me-1"></i>Run Full Team Review
+                    </button>
+                    <button type="button" class="btn btn-outline-info" onclick="runMeeting('tech-meeting', '{{ idea.name }} Technical Feasibility')">
+                        <i class="bi bi-gear me-1"></i>Technical Evaluation
+                    </button>
+                    <button type="button" class="btn btn-outline-success" onclick="runMeeting('exec-meeting', '{{ idea.name }} Business Case')">
+                        <i class="bi bi-briefcase me-1"></i>Business Evaluation
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Review Checklist -->
+        <div class="card content-card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-list-check me-2"></i>Review Checklist</h5>
+            </div>
+            <div class="card-body">
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="checkbox" id="check1">
+                    <label class="form-check-label" for="check1">Problem is clearly defined</label>
+                </div>
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="checkbox" id="check2">
+                    <label class="form-check-label" for="check2">Target audience is identified</label>
+                </div>
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="checkbox" id="check3">
+                    <label class="form-check-label" for="check3">Technical feasibility assessed</label>
+                </div>
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="checkbox" id="check4">
+                    <label class="form-check-label" for="check4">Revenue model is viable</label>
+                </div>
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="checkbox" id="check5">
+                    <label class="form-check-label" for="check5">Budget is realistic</label>
+                </div>
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="checkbox" id="check6">
+                    <label class="form-check-label" for="check6">No legal concerns</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="check7">
+                    <label class="form-check-label" for="check7">Aligns with company goals</label>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

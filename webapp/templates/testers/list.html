@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+
+{% block title %}Beta Testers{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-6">
+        <h1 class="h3">Beta Testers</h1>
+        <p class="text-muted">Manage your beta tester community</p>
+    </div>
+    <div class="col-md-6 text-end">
+        <a href="{{ url_for('testers_new') }}" class="btn btn-primary">
+            <i class="bi bi-person-plus me-1"></i>Add Tester
+        </a>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="card content-card mb-4">
+    <div class="card-body">
+        <div class="row align-items-center">
+            <div class="col-md-4 mb-2 mb-md-0">
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input type="text" class="form-control" id="searchInput" placeholder="Search testers...">
+                </div>
+            </div>
+            <div class="col-md-3 mb-2 mb-md-0">
+                <select class="form-select" id="statusFilter">
+                    <option value="">All Statuses</option>
+                    <option value="pending" {% if current_status == 'pending' %}selected{% endif %}>Pending</option>
+                    <option value="active" {% if current_status == 'active' %}selected{% endif %}>Active</option>
+                    <option value="inactive" {% if current_status == 'inactive' %}selected{% endif %}>Inactive</option>
+                    <option value="removed" {% if current_status == 'removed' %}selected{% endif %}>Removed</option>
+                </select>
+            </div>
+            <div class="col-md-5 text-end">
+                <span class="text-muted">{{ testers | length }} tester(s) found</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Testers Table -->
+<div class="table-container">
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Devices</th>
+                <th>Status</th>
+                <th>Experience</th>
+                <th>Joined</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for tester in testers %}
+            <tr>
+                <td>
+                    <a href="{{ url_for('testers_detail', tester_id=tester.id) }}" class="fw-semibold">{{ tester.name }}</a>
+                </td>
+                <td>
+                    <a href="mailto:{{ tester.email }}">{{ tester.email }}</a>
+                </td>
+                <td>
+                    {% if tester.devices %}
+                        {% for device in tester.devices[:3] %}
+                        <span class="badge bg-secondary me-1">{{ device }}</span>
+                        {% endfor %}
+                        {% if tester.devices | length > 3 %}
+                        <span class="badge bg-light text-dark">+{{ tester.devices | length - 3 }}</span>
+                        {% endif %}
+                    {% else %}
+                        <span class="text-muted">-</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <span class="badge badge-status badge-{{ tester.status }}">{{ tester.status | title }}</span>
+                </td>
+                <td>{{ tester.experience_level or '-' }}</td>
+                <td>{{ tester.created_at | datetime }}</td>
+                <td>
+                    <div class="btn-group btn-group-sm">
+                        <a href="{{ url_for('testers_detail', tester_id=tester.id) }}" class="btn btn-outline-primary btn-action" title="View">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                        <a href="{{ url_for('testers_edit', tester_id=tester.id) }}" class="btn btn-outline-secondary btn-action" title="Edit">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        {% if tester.status == 'pending' %}
+                        <a href="{{ url_for('testers_approve', tester_id=tester.id) }}" class="btn btn-outline-success btn-action" title="Approve">
+                            <i class="bi bi-check-circle"></i>
+                        </a>
+                        {% endif %}
+                    </div>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="7" class="text-center py-5">
+                    <i class="bi bi-people display-4 text-muted"></i>
+                    <p class="text-muted mt-2">No testers found</p>
+                    <a href="{{ url_for('testers_new') }}" class="btn btn-primary">Add First Tester</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

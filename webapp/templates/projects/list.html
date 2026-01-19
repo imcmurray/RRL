@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% block title %}Projects{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-6">
+        <h1 class="h3">Projects</h1>
+        <p class="text-muted">Manage active and completed projects</p>
+    </div>
+    <div class="col-md-6 text-end">
+        <a href="{{ url_for('projects_new') }}" class="btn btn-primary">
+            <i class="bi bi-folder-plus me-1"></i>New Project
+        </a>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="card content-card mb-4">
+    <div class="card-body">
+        <div class="row align-items-center">
+            <div class="col-md-4 mb-2 mb-md-0">
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input type="text" class="form-control" id="searchInput" placeholder="Search projects...">
+                </div>
+            </div>
+            <div class="col-md-3 mb-2 mb-md-0">
+                <select class="form-select" id="statusFilter">
+                    <option value="">All Statuses</option>
+                    <option value="planning" {% if current_status == 'planning' %}selected{% endif %}>Planning</option>
+                    <option value="design" {% if current_status == 'design' %}selected{% endif %}>Design</option>
+                    <option value="development" {% if current_status == 'development' %}selected{% endif %}>Development</option>
+                    <option value="testing" {% if current_status == 'testing' %}selected{% endif %}>Testing</option>
+                    <option value="launched" {% if current_status == 'launched' %}selected{% endif %}>Launched</option>
+                    <option value="maintenance" {% if current_status == 'maintenance' %}selected{% endif %}>Maintenance</option>
+                    <option value="archived" {% if current_status == 'archived' %}selected{% endif %}>Archived</option>
+                </select>
+            </div>
+            <div class="col-md-5 text-end">
+                <span class="text-muted">{{ projects | length }} project(s) found</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Projects Grid -->
+<div class="row">
+    {% for project in projects %}
+    <div class="col-lg-4 col-md-6 mb-4">
+        <div class="card content-card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0">
+                    <a href="{{ url_for('projects_detail', project_id=project.id) }}">{{ project.name }}</a>
+                </h6>
+                <span class="badge badge-status badge-{{ project.status }}">{{ project.status | title }}</span>
+            </div>
+            <div class="card-body">
+                <p class="small text-muted mb-2">{{ project.description[:100] if project.description else 'No description' }}{% if project.description and project.description|length > 100 %}...{% endif %}</p>
+
+                <div class="row small">
+                    <div class="col-6">
+                        <span class="text-muted">Client:</span><br>
+                        {{ project.client_name or 'Internal' }}
+                    </div>
+                    <div class="col-6">
+                        <span class="text-muted">Platforms:</span><br>
+                        {% if project.platforms %}
+                            {{ project.platforms | join(', ') }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </div>
+                </div>
+
+                {% if project.progress is defined %}
+                <div class="mt-3">
+                    <div class="d-flex justify-content-between small mb-1">
+                        <span>Progress</span>
+                        <span>{{ project.progress }}%</span>
+                    </div>
+                    <div class="progress" style="height: 5px;">
+                        <div class="progress-bar" role="progressbar" style="width: {{ project.progress }}%"></div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            <div class="card-footer bg-transparent">
+                <div class="d-flex justify-content-between align-items-center">
+                    <small class="text-muted">
+                        {% if project.value %}{{ project.value | currency }}{% else %}No budget{% endif %}
+                    </small>
+                    <div class="btn-group btn-group-sm">
+                        <a href="{{ url_for('projects_detail', project_id=project.id) }}" class="btn btn-outline-primary">View</a>
+                        <a href="{{ url_for('projects_edit', project_id=project.id) }}" class="btn btn-outline-secondary">Edit</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-12">
+        <div class="text-center py-5">
+            <i class="bi bi-kanban display-4 text-muted"></i>
+            <p class="text-muted mt-2">No projects found</p>
+            <a href="{{ url_for('projects_new') }}" class="btn btn-primary">Create First Project</a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
