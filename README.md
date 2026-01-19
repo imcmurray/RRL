@@ -1,265 +1,329 @@
 # Rinse Repeat Labs Agent Orchestrator
 
-A command-line orchestrator that coordinates multiple AI agents for virtual meetings, enabling collaborative discussions, decision-making, and actionable outputs.
+A command-line tool for coordinating 12 AI agents in virtual meetings for Rinse Repeat Labs, a software development agency.
 
 ## Overview
 
-The orchestrator enables "virtual meetings" where AI agents (each with a distinct role and persona) discuss topics, make decisions, and produce structured outputs. It's designed for Rinse Repeat Labs, a software development agency that uses Claude-powered agents to run the company.
+The orchestrator enables **you (the Architect)** to run virtual meetings with AI agents, each representing a distinct role in the company. Agents discuss topics, make decisions, and produce actionable outputs.
 
-## Agents
-
-The orchestrator includes six specialized agents:
-
-| Agent | Role |
-|-------|------|
-| **CITO** | Chief Information Technology Officer — Technical strategy, idea evaluation |
-| **PM** | Project Manager — Sprint planning, coordination, client communication |
-| **DevLead** | Lead Developer — Architecture, code quality, implementation decisions |
-| **QALead** | QA Lead — Test planning, bug triage, release sign-off |
-| **CustomerSuccess** | Customer Success Manager — Post-launch support, client satisfaction |
-| **Marketing** | Marketing/Growth Lead — ASO, launch strategy, analytics |
+```
+                            ┌─────────────────┐
+                            │    ARCHITECT    │
+                            │     (You)       │
+                            │  Human Overseer │
+                            └────────┬────────┘
+                                     │
+                    ┌────────────────┼────────────────┐
+                    │                │                │
+                    ▼                ▼                ▼
+              ┌─────────┐     ┌───────────┐    ┌───────────┐
+              │   CEO   │     │   1:1s    │    │  Team     │
+              │ Partner │     │  w/Agents │    │ Meetings  │
+              └─────────┘     └───────────┘    └───────────┘
+```
 
 ## Installation
 
-1. Clone the repository:
-   ```bash
-   git clone <repository-url>
-   cd rinse-repeat-orchestrator
-   ```
+```bash
+# Install dependencies
+pip install -r requirements.txt
 
-2. Create a virtual environment:
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   ```
+# Set your API key
+export ANTHROPIC_API_KEY="your-key-here"
+```
 
-3. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
+## Agent Roster (12 Agents)
 
-4. Set your Anthropic API key:
-   ```bash
-   export ANTHROPIC_API_KEY="your-api-key-here"
-   ```
+### Executive Team
+| Agent | Role | Reports To |
+|-------|------|------------|
+| **CEO** | Vision, strategy, key relationships | Architect |
+| **CFO** | Pricing, revenue, financial health | CEO |
+| **CITO** | Technical strategy, idea evaluation | CEO |
+| **Sales** | Lead management, deals, partnerships | CEO |
+| **Legal** | Contracts, compliance, IP | CEO |
 
-## Usage
+### Technical Team
+| Agent | Role | Reports To |
+|-------|------|------------|
+| **DevLead** | Architecture, code quality | CITO |
+| **DesignLead** | UI/UX, design systems | CITO |
+| **QALead** | Testing, quality, tester program | CITO |
 
-### Quick Start
+### Operations Team
+| Agent | Role | Reports To |
+|-------|------|------------|
+| **PM** | Project coordination, client comms | CEO |
+| **CustomerSuccess** | Post-launch relationships | PM |
+| **Marketing** | ASO, growth, brand | CEO |
+| **Support** | Tickets, documentation, testers | PM |
+
+## Quick Start
 
 ```bash
-# Run in interactive mode (recommended for exploration)
+# Interactive mode (recommended for exploration)
 python orchestrator.py interactive
 
-# Run a standup with all agents
+# CEO sync - strategic alignment
+python orchestrator.py ceo-sync
+
+# 1:1 with any agent
+python orchestrator.py 1on1 --agent cito
+
+# Daily standup with all agents
 python orchestrator.py standup
 
-# Get help
-python orchestrator.py --help
+# Company status dashboard
+python orchestrator.py status
 ```
 
-### Meeting Types
+## CLI Commands
 
-#### Daily Standup
-Quick status sync where each agent reports what they've done, what they're doing, and any blockers.
+### 1:1 Meetings
 
 ```bash
+# Meet with any agent
+python orchestrator.py 1on1 --agent ceo
+python orchestrator.py 1on1 --agent cito --topic "Flutter migration"
+python orchestrator.py 1on1 --agent cfo --topic "Q1 revenue review"
+
+# Strategic sync with CEO
+python orchestrator.py ceo-sync
+python orchestrator.py ceo-sync --topic "Q2 hiring plan"
+```
+
+### Team Meetings
+
+```bash
+# Executive team (CEO, CFO, CITO, Sales, Legal)
+python orchestrator.py exec-meeting
+python orchestrator.py exec-meeting --topic "New enterprise opportunity"
+
+# Technical team (CITO, DevLead, DesignLead, QALead)
+python orchestrator.py tech-meeting
+python orchestrator.py tech-meeting --topic "Architecture review"
+
+# Project meeting (PM, DevLead, DesignLead, QALead)
+python orchestrator.py project-meeting --project "TimeFlow"
+python orchestrator.py project-meeting --project "FitPulse" --topic "Sprint 4"
+
+# All-hands (all 12 agents)
+python orchestrator.py all-hands
+python orchestrator.py all-hands --topic "Q1 retro and Q2 planning"
+```
+
+### Operations
+
+```bash
+# Daily standup
 python orchestrator.py standup
-python orchestrator.py standup --agents cito,pm,dev_lead
+python orchestrator.py standup --agents "dev_lead,design_lead,qa_lead"
+
+# Review an idea submission
+python orchestrator.py idea-review --idea ideas/fitness-app.md
+
+# Project retrospective
+python orchestrator.py retro --project "ShopWave"
+
+# Strategy session
+python orchestrator.py strategy --topic "Should we adopt Flutter?"
+
+# Custom meeting
+python orchestrator.py meeting --topic "Marketing budget" --agents ceo,cfo,marketing
 ```
 
-#### Strategy Session
-Deep discussion on a specific topic with synthesis and action items.
-
-```bash
-python orchestrator.py strategy --topic "Q2 hiring plan"
-python orchestrator.py strategy --topic "Should we adopt Flutter?" --agents cito,dev_lead,qa_lead
-```
-
-#### Idea Review
-Comprehensive evaluation of a new idea or proposal.
-
-```bash
-python orchestrator.py idea-review --idea path/to/proposal.md
-```
-
-#### Project Retrospective
-Review a completed project: what went well, what didn't, and lessons learned.
-
-```bash
-python orchestrator.py retro --project "TimeFlow"
-```
-
-#### Custom Meeting
-Free-form discussion on any topic.
-
-```bash
-python orchestrator.py meeting --topic "Any topic you want to discuss"
-python orchestrator.py meeting --topic "API versioning strategy" --agents dev_lead,qa_lead
-```
-
-### Viewing Data
+### Utilities
 
 ```bash
 # View recent decisions
 python orchestrator.py decisions --last 10
-python orchestrator.py decisions --status pending --owner DevLead
+python orchestrator.py decisions --topic "Flutter"
 
 # View past meetings
-python orchestrator.py meetings --last 5
+python orchestrator.py meetings --last 10
 
-# List available agents
+# List all agents
 python orchestrator.py agents
-```
 
-### Interactive Mode
+# Company dashboard
+python orchestrator.py status
 
-The interactive mode provides a menu-driven interface for easier exploration:
-
-```bash
+# Interactive menu
 python orchestrator.py interactive
-```
-
-```
-Rinse Repeat Labs — Agent Orchestrator
-
-What would you like to do?
-  1. Run a standup
-  2. Strategy session
-  3. Review an idea
-  4. Project retrospective
-  5. Custom meeting
-  6. View past meetings
-  7. View decisions
-  8. List agents
-  9. Exit
 ```
 
 ## Project Structure
 
 ```
 rinse-repeat-orchestrator/
-├── agents/                    # Agent persona definitions
+├── agents/                  # Agent system prompts (12 files)
+│   ├── ceo.md
+│   ├── cfo.md
 │   ├── cito.md
-│   ├── pm.md
+│   ├── sales.md
+│   ├── legal.md
 │   ├── dev_lead.md
+│   ├── design_lead.md
 │   ├── qa_lead.md
+│   ├── pm.md
 │   ├── customer_success.md
-│   └── marketing.md
-├── meetings/                  # Generated meeting transcripts
-│   └── [YYYY-MM-DD-type-topic].md
-├── decisions/                 # Decision tracking
+│   ├── marketing.md
+│   └── support.md
+├── meetings/                # Meeting transcripts (auto-generated)
+├── decisions/               # Decision log
 │   └── decisions.json
-├── context/                   # Shared context files
-│   ├── company.md            # Company overview
-│   ├── active_projects.md    # Current projects
-│   └── pending_ideas.md      # Ideas under evaluation
-├── src/                       # Source code
-│   ├── __init__.py
-│   ├── agent.py              # Agent class
-│   ├── meeting.py            # Meeting facilitation
-│   └── utils.py              # Utility functions
-├── config.py                  # Configuration
-├── orchestrator.py            # Main CLI
-├── requirements.txt           # Dependencies
+├── context/                 # Shared context for meetings
+│   ├── company.md
+│   ├── active_projects.md
+│   ├── pending_ideas.md
+│   └── architect_notes.md
+├── src/                     # Source code
+│   ├── agent.py
+│   ├── meeting.py
+│   └── utils.py
+├── orchestrator.py          # Main CLI
+├── config.py                # Configuration
+├── requirements.txt
 └── README.md
+```
+
+## Meeting Types
+
+| Type | Command | Participants | Purpose |
+|------|---------|--------------|---------|
+| **1:1** | `1on1` | You + 1 agent | Deep dive on domain |
+| **CEO Sync** | `ceo-sync` | You + CEO | Strategic alignment |
+| **Executive** | `exec-meeting` | 5 executives | Business decisions |
+| **Technical** | `tech-meeting` | 4 tech leads | Architecture, quality |
+| **Project** | `project-meeting` | PM + team | Sprint coordination |
+| **All-Hands** | `all-hands` | All 12 agents | Company alignment |
+| **Standup** | `standup` | All agents | Daily sync |
+| **Idea Review** | `idea-review` | 6 agents | Evaluate submissions |
+| **Retro** | `retro` | Project team | Lessons learned |
+| **Strategy** | `strategy` | Custom | Strategic topics |
+| **Custom** | `meeting` | Custom | Any topic |
+
+## Idea Submission Format
+
+Create a markdown file in `context/pending_ideas/`:
+
+```markdown
+# App Idea: [Name]
+
+## Submitted By
+[Name, email]
+
+## Idea Description
+[What is this app?]
+
+## Problem It Solves
+[What pain point does it address?]
+
+## Target Users
+[Who would use this?]
+
+## Desired Platforms
+- [ ] iOS
+- [ ] Android
+- [ ] Web
+- [ ] Desktop
+
+## Preferred Revenue Model
+- [ ] Full payment (keep 100%)
+- [ ] 70/30 revenue share
+- [ ] 50/50 revenue share
+
+## Timeline Expectations
+[ASAP / 3 months / 6 months / Flexible]
+
+## Additional Notes
+[Anything else relevant]
+```
+
+Then run:
+```bash
+python orchestrator.py idea-review --idea context/pending_ideas/my-idea.md
 ```
 
 ## Configuration
 
 Edit `config.py` to customize:
 
-- `DEFAULT_MODEL`: Claude model to use (default: `claude-sonnet-4-20250514`)
-- `MAX_TOKENS`: Maximum tokens per response
-- `DEFAULT_AGENTS`: Default agents for meetings
-- `MEETING_TYPES`: Meeting type configurations
+- `DEFAULT_MODEL`: Claude model to use (default: claude-sonnet-4-20250514)
+- `MAX_TOKENS`: Maximum response length
+- `MEETING_TYPES`: Default agents and facilitators per meeting type
 
 ## Adding New Agents
 
 1. Create a new markdown file in `agents/`:
 
 ```markdown
-# Agent: NewAgent
+# Agent: [Name]
 
 ## Role
-One-line role description
+[One-line description]
 
 ## Expertise
-- Area 1
-- Area 2
+- [Area 1]
+- [Area 2]
 
 ## Responsibilities
-- Responsibility 1
-- Responsibility 2
+- [Responsibility 1]
+- [Responsibility 2]
 
 ## Communication Style
-How this agent communicates
+[How this agent communicates]
 
 ## System Prompt
-Full system prompt for the API...
+[Full system prompt for the API]
 ```
 
-2. Update `config.py` to add the agent to `DEFAULT_AGENTS` and `AGENT_DISPLAY_NAMES` if desired.
+2. Update `config.py` to add the agent to appropriate team lists
 
-## Output Format
+## Output
 
-### Meeting Transcript
+### Meeting Transcripts
+Saved to `meetings/YYYY-MM-DD-type-topic.md`:
+- Participant list
+- Full discussion
+- Facilitator synthesis
+- Decisions and action items
 
-Meeting transcripts are saved as markdown files in the `meetings/` directory:
+### Decisions Log
+Appended to `decisions/decisions.json`:
+- Date, topic, decision
+- Rationale and owner
+- Status tracking
 
-```markdown
-# Strategy Session: Q2 Technology Investments
-**Date:** 2026-01-19
-**Participants:** CITO, PM, DevLead, QALead
-**Facilitator:** CITO
+## Workflow Example
 
----
+1. **Morning standup**
+   ```bash
+   python orchestrator.py standup
+   ```
 
-## Discussion
+2. **New idea arrives** - Create idea file
 
-### CITO
-[Agent's response...]
+3. **Review the idea**
+   ```bash
+   python orchestrator.py idea-review --idea ideas/new-app.md
+   ```
 
-### DevLead
-[Agent's response...]
+4. **Deep dive with CITO**
+   ```bash
+   python orchestrator.py 1on1 --agent cito --topic "Technical approach"
+   ```
 
----
+5. **Strategic sync with CEO**
+   ```bash
+   python orchestrator.py ceo-sync --topic "Should we proceed?"
+   ```
 
-## Synthesis (by CITO)
-[Summary, decisions, action items...]
-```
-
-### Decisions
-
-Decisions are logged to `decisions/decisions.json`:
-
-```json
-[
-  {
-    "id": 1,
-    "date": "2026-01-19",
-    "topic": "Technology Strategy",
-    "decision": "Adopt Flutter as primary mobile framework",
-    "rationale": "Better cross-platform support",
-    "owner": "DevLead",
-    "status": "pending"
-  }
-]
-```
-
-## API Usage
-
-The orchestrator uses the Anthropic API. Each agent turn makes one API call:
-
-```python
-response = client.messages.create(
-    model="claude-sonnet-4-20250514",
-    max_tokens=2048,
-    system=agent.system_prompt + shared_context,
-    messages=[{"role": "user", "content": meeting_prompt}]
-)
-```
+6. **Check decisions**
+   ```bash
+   python orchestrator.py decisions --last 5
+   ```
 
 ## License
 
-MIT License
+MIT License - See LICENSE file for details.
