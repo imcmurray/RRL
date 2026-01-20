@@ -1472,6 +1472,79 @@ class AgentCustomizationsStore:
 
 
 # =============================================================================
+# AGENT CHAT STORE
+# =============================================================================
+
+class AgentChatStore(DataStore):
+    """Store for agent chat conversations."""
+
+    def __init__(self):
+        super().__init__("agent_chats")
+
+    def create_session(
+        self,
+        agent_id: str,
+        topic: str = "",
+    ) -> dict[str, Any]:
+        """Create a new chat session with an agent."""
+        return self.create({
+            "agent_id": agent_id,
+            "topic": topic,
+            "messages": [],
+            "started_at": datetime.now().isoformat(),
+            "last_message_at": None,
+            "is_active": True,
+        })
+
+    def add_message(
+        self,
+        session_id: str,
+        role: str,  # "user" or "assistant"
+        content: str,
+    ) -> dict[str, Any] | None:
+        """Add a message to a chat session."""
+        session = self.get_by_id(session_id)
+        if not session:
+            return None
+
+        messages = session.get("messages", [])
+        messages.append({
+            "role": role,
+            "content": content,
+            "timestamp": datetime.now().isoformat(),
+        })
+
+        return self.update(session_id, {
+            "messages": messages,
+            "last_message_at": datetime.now().isoformat(),
+        })
+
+    def get_by_agent(self, agent_id: str, active_only: bool = True) -> list[dict[str, Any]]:
+        """Get all chat sessions for an agent."""
+        sessions = self.query(agent_id=agent_id)
+        if active_only:
+            sessions = [s for s in sessions if s.get("is_active", True)]
+        return sorted(sessions, key=lambda x: x.get("started_at", ""), reverse=True)
+
+    def end_session(self, session_id: str) -> dict[str, Any] | None:
+        """Mark a chat session as ended."""
+        return self.update(session_id, {
+            "is_active": False,
+            "ended_at": datetime.now().isoformat(),
+        })
+
+    def get_recent_sessions(self, limit: int = 10) -> list[dict[str, Any]]:
+        """Get most recent chat sessions across all agents."""
+        all_sessions = self.get_all()
+        sorted_sessions = sorted(
+            all_sessions,
+            key=lambda x: x.get("last_message_at") or x.get("started_at", ""),
+            reverse=True
+        )
+        return sorted_sessions[:limit]
+
+
+# =============================================================================
 # CONVENIENCE FUNCTIONS
 # =============================================================================
 
@@ -1484,6 +1557,7 @@ _finances_store: FinancesStore | None = None
 _agent_requests_store: AgentRequestsStore | None = None
 _settings_store: SettingsStore | None = None
 _agent_customizations_store: AgentCustomizationsStore | None = None
+_agent_chat_store: AgentChatStore | None = None
 
 
 def get_ideas_store() -> IdeasStore:
@@ -1548,3 +1622,11 @@ def get_agent_customizations_store() -> AgentCustomizationsStore:
     if _agent_customizations_store is None:
         _agent_customizations_store = AgentCustomizationsStore()
     return _agent_customizations_store
+
+
+def get_agent_chat_store() -> AgentChatStore:
+    """Get the agent chat store singleton."""
+    global _agent_chat_store
+    if _agent_chat_store is None:
+        _agent_chat_store = AgentChatStore()
+    return _agent_chat_store

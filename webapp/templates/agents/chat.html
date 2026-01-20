@@ -1,0 +1,298 @@
+{% extends "base.html" %}
+
+{% block title %}Chat with {{ agent.name }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('agents_list') }}">Agent Portals</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('agent_portal', agent_id=agent.id) }}">{{ agent.role }}</a></li>
+                <li class="breadcrumb-item active">Chat</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Chat Area -->
+    <div class="col-lg-8">
+        <div class="card content-card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center">
+                    <span class="agent-badge agent-{{ agent.id }} me-2">{{ customizations.role_title or agent.role }}</span>
+                    <h5 class="mb-0">Chat with {{ customizations.display_name or agent.name }}</h5>
+                </div>
+                <div>
+                    <form action="{{ url_for('agent_chat_end', agent_id=agent.id, session_id=session.id) }}" method="POST" class="d-inline">
+                        <button type="submit" class="btn btn-sm btn-outline-secondary">
+                            <i class="bi bi-box-arrow-right me-1"></i>End Chat
+                        </button>
+                    </form>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <!-- Messages Container -->
+                <div id="chat-messages" class="p-3" style="height: 450px; overflow-y: auto; background: var(--bs-body-bg);">
+                    {% if session.messages %}
+                        {% for msg in session.messages %}
+                        <div class="chat-message mb-3 {% if msg.role == 'user' %}text-end{% endif %}">
+                            <div class="d-inline-block p-3 rounded {% if msg.role == 'user' %}bg-primary text-white{% else %}bg-light{% endif %}" style="max-width: 80%;">
+                                <div class="fw-bold small mb-1">
+                                    {% if msg.role == 'user' %}
+                                    <i class="bi bi-person-circle me-1"></i>You (Architect)
+                                    {% else %}
+                                    <i class="bi bi-robot me-1"></i>{{ customizations.display_name or agent.name }}
+                                    {% endif %}
+                                </div>
+                                <div class="chat-content">{{ msg.content | replace('\n\n', '</p><p>') | replace('\n', '<br>') | safe }}</div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                    <div id="welcome-message" class="text-center py-5">
+                        <i class="bi bi-chat-dots display-4 text-muted mb-3"></i>
+                        <h5>Start a conversation with {{ customizations.display_name or agent.name }}</h5>
+                        <p class="text-muted">Ask questions, discuss strategy, or get advice on their area of expertise.</p>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Typing Indicator -->
+                <div id="typing-indicator" class="px-3 py-2 border-top d-none">
+                    <div class="d-flex align-items-center text-muted">
+                        <div class="spinner-border spinner-border-sm me-2" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <span>{{ customizations.display_name or agent.name }} is typing...</span>
+                    </div>
+                </div>
+
+                <!-- Message Input -->
+                <div class="p-3 border-top">
+                    <form id="chat-form" class="d-flex gap-2">
+                        <input type="text" class="form-control" id="message-input"
+                               placeholder="Type your message..." autocomplete="off" autofocus>
+                        <button type="submit" class="btn btn-primary" id="send-btn">
+                            <i class="bi bi-send"></i>
+                        </button>
+                    </form>
+                    <div class="form-text mt-2">
+                        <i class="bi bi-info-circle me-1"></i>
+                        Press Enter to send. The AI will respond based on company context and the agent's role.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+        <!-- Agent Info -->
+        <div class="card content-card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i>About This Agent</h5>
+            </div>
+            <div class="card-body">
+                <p class="small">{{ customizations.description or agent.description }}</p>
+                {% if customizations.custom_instructions %}
+                <hr>
+                <h6 class="small text-muted mb-2">Custom Instructions</h6>
+                <p class="small mb-0">{{ customizations.custom_instructions }}</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Conversation Starters -->
+        <div class="card content-card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-lightbulb me-2"></i>Conversation Starters</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    {% if agent.id == 'ceo' %}
+                    <button class="btn btn-outline-secondary btn-sm text-start starter-btn" data-message="What should our top priorities be this quarter?">
+                        <i class="bi bi-arrow-right me-2"></i>Top priorities for this quarter?
+                    </button>
+                    <button class="btn btn-outline-secondary btn-sm text-start starter-btn" data-message="How can we improve our company culture?">
+                        <i class="bi bi-arrow-right me-2"></i>Improving company culture
+                    </button>
+                    <button class="btn btn-outline-secondary btn-sm text-start starter-btn" data-message="What are the biggest risks we face right now?">
+                        <i class="bi bi-arrow-right me-2"></i>Current business risks
+                    </button>
+                    {% elif agent.id == 'cfo' %}
+                    <button class="btn btn-outline-secondary btn-sm text-start starter-btn" data-message="How should we structure our pricing?">
+                        <i class="bi bi-arrow-right me-2"></i>Pricing strategy
+                    </button>
+                    <button class="btn btn-outline-secondary btn-sm text-start starter-btn" data-message="What financial metrics should I track?">
+                        <i class="bi bi-arrow-right me-2"></i>Key financial metrics
+                    </button>
+                    <button class="btn btn-outline-secondary btn-sm text-start starter-btn" data-message="How can we improve our cash flow?">
+                        <i class="bi bi-arrow-right me-2"></i>Cash flow improvements
+                    </button>
+                    {% elif agent.id == 'cito' %}
+                    <button class="btn btn-outline-secondary btn-sm text-start starter-btn" data-message="What technology stack should we use for a new project?">
+                        <i class="bi bi-arrow-right me-2"></i>Tech stack recommendations
+                    </button>
+                    <button class="btn btn-outline-secondary btn-sm text-start starter-btn" data-message="How should we approach technical debt?">
+                        <i class="bi bi-arrow-right me-2"></i>Technical debt strategy
+                    </button>
+                    <button class="btn btn-outline-secondary btn-sm text-start starter-btn" data-message="What security considerations should we have?">
+                        <i class="bi bi-arrow-right me-2"></i>Security considerations
+                    </button>
+                    {% else %}
+                    <button class="btn btn-outline-secondary btn-sm text-start starter-btn" data-message="What are your main focus areas right now?">
+                        <i class="bi bi-arrow-right me-2"></i>Current focus areas
+                    </button>
+                    <button class="btn btn-outline-secondary btn-sm text-start starter-btn" data-message="What challenges are you facing?">
+                        <i class="bi bi-arrow-right me-2"></i>Current challenges
+                    </button>
+                    <button class="btn btn-outline-secondary btn-sm text-start starter-btn" data-message="How can I help you be more effective?">
+                        <i class="bi bi-arrow-right me-2"></i>How can I help?
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Sessions -->
+        {% if recent_sessions %}
+        <div class="card content-card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-clock-history me-2"></i>Recent Chats</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled mb-0 small">
+                    {% for sess in recent_sessions %}
+                    <li class="mb-2 pb-2 {% if not loop.last %}border-bottom{% endif %}">
+                        <a href="{{ url_for('agent_chat', agent_id=agent.id, session=sess.id) }}"
+                           class="text-decoration-none {% if sess.id == session.id %}fw-bold{% endif %}">
+                            <i class="bi bi-chat-left-text me-1"></i>
+                            {% if sess.topic %}{{ sess.topic }}{% else %}Chat {{ loop.revindex }}{% endif %}
+                        </a>
+                        <br>
+                        <span class="text-muted">
+                            {{ sess.started_at | datetime }}
+                            {% if not sess.is_active %}<span class="badge bg-secondary ms-1">Ended</span>{% endif %}
+                        </span>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('chat-form');
+    const input = document.getElementById('message-input');
+    const messagesContainer = document.getElementById('chat-messages');
+    const typingIndicator = document.getElementById('typing-indicator');
+    const sendBtn = document.getElementById('send-btn');
+    const welcomeMessage = document.getElementById('welcome-message');
+    const agentName = "{{ customizations.display_name or agent.name }}";
+    const sendUrl = "{{ url_for('agent_chat_send', agent_id=agent.id, session_id=session.id) }}";
+
+    // Scroll to bottom on load
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+    // Handle form submission
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const message = input.value.trim();
+        if (!message) return;
+
+        // Disable input while processing
+        input.disabled = true;
+        sendBtn.disabled = true;
+
+        // Remove welcome message if present
+        if (welcomeMessage) {
+            welcomeMessage.remove();
+        }
+
+        // Add user message to UI
+        addMessage('user', message);
+        input.value = '';
+
+        // Show typing indicator
+        typingIndicator.classList.remove('d-none');
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+        try {
+            const formData = new FormData();
+            formData.append('message', message);
+
+            const response = await fetch(sendUrl, {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                addMessage('assistant', data.response);
+            } else {
+                addMessage('system', 'Error: ' + (data.error || 'Failed to get response'));
+            }
+        } catch (error) {
+            addMessage('system', 'Error: Failed to connect to server');
+        }
+
+        // Hide typing indicator and re-enable input
+        typingIndicator.classList.add('d-none');
+        input.disabled = false;
+        sendBtn.disabled = false;
+        input.focus();
+    });
+
+    // Conversation starters
+    document.querySelectorAll('.starter-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            input.value = this.dataset.message;
+            input.focus();
+        });
+    });
+
+    function addMessage(role, content) {
+        const div = document.createElement('div');
+        div.className = 'chat-message mb-3' + (role === 'user' ? ' text-end' : '');
+
+        const inner = document.createElement('div');
+        inner.className = 'd-inline-block p-3 rounded ' +
+            (role === 'user' ? 'bg-primary text-white' :
+             role === 'system' ? 'bg-danger text-white' : 'bg-light');
+        inner.style.maxWidth = '80%';
+
+        const header = document.createElement('div');
+        header.className = 'fw-bold small mb-1';
+        if (role === 'user') {
+            header.innerHTML = '<i class="bi bi-person-circle me-1"></i>You (Architect)';
+        } else if (role === 'system') {
+            header.innerHTML = '<i class="bi bi-exclamation-triangle me-1"></i>System';
+        } else {
+            header.innerHTML = '<i class="bi bi-robot me-1"></i>' + agentName;
+        }
+
+        const body = document.createElement('div');
+        body.className = 'chat-content';
+        // Convert newlines to HTML
+        body.innerHTML = content.replace(/\n\n/g, '</p><p>').replace(/\n/g, '<br>');
+
+        inner.appendChild(header);
+        inner.appendChild(body);
+        div.appendChild(inner);
+        messagesContainer.appendChild(div);
+
+        // Scroll to bottom
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+});
+</script>
+{% endblock %}
