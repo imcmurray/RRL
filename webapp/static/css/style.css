@@ -561,10 +561,7 @@ main {
     background-color: var(--rrl-bg-card) !important;
 }
 
-/* Agent badges - keep colors consistent in dark mode */
-[data-bs-theme="dark"] .agent-badge {
-    background-color: var(--rrl-bg-elevated);
-}
+/* Agent badges - keep vibrant colors in dark mode (no override needed) */
 
 /* HTMX loading overlay in dark mode */
 [data-bs-theme="dark"] .htmx-loading::after {
