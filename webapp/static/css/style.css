@@ -556,6 +556,28 @@ main {
     color: #e9ecef;
 }
 
+/* Form elements in dark mode */
+[data-bs-theme="dark"] .form-check.border {
+    border-color: var(--rrl-border-color) !important;
+    background-color: var(--rrl-bg-elevated);
+}
+
+[data-bs-theme="dark"] .form-check.border:hover {
+    border-color: #6c757d !important;
+}
+
+[data-bs-theme="dark"] .bg-light {
+    background-color: var(--rrl-bg-elevated) !important;
+}
+
+[data-bs-theme="dark"] .form-check-label strong {
+    color: #e9ecef;
+}
+
+[data-bs-theme="dark"] .form-text {
+    color: var(--rrl-text-muted);
+}
+
 /* Footer in dark mode */
 [data-bs-theme="dark"] .footer {
     background-color: var(--rrl-bg-card) !important;
