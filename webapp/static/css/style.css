@@ -556,6 +556,22 @@ main {
     color: #e9ecef;
 }
 
+/* Form elements - bordered radio/checkbox cards */
+.form-check.border {
+    display: flex;
+    align-items: flex-start;
+}
+
+.form-check.border .form-check-input {
+    margin-top: 0.35rem;
+    flex-shrink: 0;
+}
+
+.form-check.border .form-check-label {
+    flex: 1;
+    padding-left: 0.5rem;
+}
+
 /* Form elements in dark mode */
 [data-bs-theme="dark"] .form-check.border {
     border-color: var(--rrl-border-color) !important;
