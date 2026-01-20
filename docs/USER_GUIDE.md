@@ -51,7 +51,17 @@ The RRL AI Orchestrator is designed for anyone building software products who wa
 git clone https://github.com/imcmurray/RRL.git
 cd RRL
 
-# Run the setup wizard
+# Create and activate a virtual environment (recommended)
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Set your API key
+export ANTHROPIC_API_KEY="your-key-here"
+
+# Run the setup wizard and launch web dashboard
 python orchestrator.py setup --launch-web
 ```
 
