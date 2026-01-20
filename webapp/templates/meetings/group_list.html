@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block title %}Meetings{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h1 class="h3">
+            <i class="bi bi-people me-2"></i>Group Meetings
+        </h1>
+        <p class="text-muted">Hold meetings with multiple AI agents at once</p>
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="{{ url_for('group_meeting_new') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle me-1"></i>New Meeting
+        </a>
+    </div>
+</div>
+
+<!-- Meeting Presets -->
+<h5 class="mb-3">Quick Start - Meeting Types</h5>
+<div class="row mb-4">
+    {% for preset_id, preset in presets.items() %}
+    <div class="col-lg-4 col-md-6 mb-3">
+        <div class="card content-card h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-2">
+                    <span class="badge bg-{{ preset.color }} me-2">
+                        <i class="bi bi-{{ preset.icon }}"></i>
+                    </span>
+                    <h5 class="mb-0">{{ preset.name }}</h5>
+                </div>
+                <p class="text-muted small mb-3">{{ preset.description }}</p>
+                <div class="mb-3">
+                    {% for agent_id in preset.agents[:4] %}
+                    <span class="badge bg-secondary me-1">{{ all_agents[agent_id].role if agent_id in all_agents else agent_id }}</span>
+                    {% endfor %}
+                    {% if preset.agents|length > 4 %}
+                    <span class="badge bg-secondary">+{{ preset.agents|length - 4 }} more</span>
+                    {% endif %}
+                </div>
+                <a href="{{ url_for('group_meeting_new') }}?type={{ preset_id }}" class="btn btn-outline-{{ preset.color }} btn-sm">
+                    <i class="bi bi-play-fill me-1"></i>Start Meeting
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Recent Meetings -->
+<div class="card content-card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="bi bi-clock-history me-2"></i>Recent Meetings</h5>
+    </div>
+    <div class="card-body">
+        {% if meetings %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Meeting</th>
+                        <th>Topic</th>
+                        <th>Participants</th>
+                        <th>Status</th>
+                        <th>Started</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for meeting in meetings %}
+                    <tr>
+                        <td>
+                            <strong>{{ meeting.meeting_name }}</strong>
+                            <br>
+                            <small class="text-muted">{{ meeting.meeting_type }}</small>
+                        </td>
+                        <td>{{ meeting.topic[:50] }}{% if meeting.topic|length > 50 %}...{% endif %}</td>
+                        <td>
+                            {% for agent in meeting._agents[:3] %}
+                            <span class="badge bg-secondary">{{ agent.role if agent else '?' }}</span>
+                            {% endfor %}
+                            {% if meeting._agents|length > 3 %}
+                            <span class="badge bg-secondary">+{{ meeting._agents|length - 3 }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if meeting.is_active %}
+                            <span class="badge bg-success">Active</span>
+                            {% else %}
+                            <span class="badge bg-secondary">Ended</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ meeting.started_at | datetime }}</td>
+                        <td>
+                            {% if meeting.is_active %}
+                            <a href="{{ url_for('group_meeting_view', meeting_id=meeting.id) }}" class="btn btn-sm btn-primary">
+                                <i class="bi bi-chat-dots me-1"></i>Continue
+                            </a>
+                            {% else %}
+                            <a href="{{ url_for('group_meeting_view', meeting_id=meeting.id) }}" class="btn btn-sm btn-outline-secondary">
+                                <i class="bi bi-eye me-1"></i>View
+                            </a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="bi bi-people display-4 text-muted mb-3"></i>
+            <p class="text-muted">No meetings yet. Start a new meeting to get started!</p>
+            <a href="{{ url_for('group_meeting_new') }}" class="btn btn-primary">
+                <i class="bi bi-plus-circle me-1"></i>New Meeting
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

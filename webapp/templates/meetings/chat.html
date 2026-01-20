@@ -1,0 +1,315 @@
+{% extends "base.html" %}
+
+{% block title %}{{ meeting.meeting_name }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Main Chat Area -->
+    <div class="col-lg-9">
+        <!-- Header -->
+        <div class="card content-card mb-3">
+            <div class="card-body py-2">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4 class="mb-1">{{ meeting.meeting_name }}</h4>
+                        <p class="text-muted mb-0 small">
+                            <i class="bi bi-chat-text me-1"></i>{{ meeting.topic }}
+                        </p>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        {% if meeting.is_active %}
+                        <span class="badge bg-success">Active</span>
+                        {% else %}
+                        <span class="badge bg-secondary">Ended</span>
+                        {% endif %}
+                        <a href="{{ url_for('group_meetings_list') }}" class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-arrow-left me-1"></i>All Meetings
+                        </a>
+                        {% if meeting.is_active %}
+                        <form action="{{ url_for('group_meeting_end', meeting_id=meeting.id) }}" method="POST" class="d-inline">
+                            <button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirm('End this meeting?')">
+                                <i class="bi bi-stop-circle me-1"></i>End Meeting
+                            </button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Participants -->
+        <div class="mb-3">
+            <small class="text-muted">Participants:</small>
+            {% for agent in agents %}
+            <span class="badge bg-{{ 'primary' if agent.team == 'Executive' else 'info' if agent.team == 'Technical' else 'warning' }} me-1">
+                {{ agent.role }}
+            </span>
+            {% endfor %}
+        </div>
+
+        <!-- Messages Container -->
+        <div class="card content-card mb-3">
+            <div class="card-body" id="messages-container" style="height: 500px; overflow-y: auto;">
+                {% if not meeting.messages %}
+                <div class="text-center py-5" id="empty-state">
+                    <i class="bi bi-chat-dots display-4 text-muted mb-3"></i>
+                    <p class="text-muted">Start the meeting by typing a message below.</p>
+                    <p class="text-muted small">All {{ agents|length }} participants will respond to your message.</p>
+                </div>
+                {% else %}
+                {% for msg in meeting.messages %}
+                <div class="message mb-3 {% if msg.role == 'user' %}message-user{% else %}message-agent{% endif %}">
+                    {% if msg.role == 'user' %}
+                    <div class="d-flex justify-content-end">
+                        <div class="bg-primary text-white rounded p-3" style="max-width: 80%;">
+                            <div class="fw-bold mb-1">You (Architect)</div>
+                            <div>{{ msg.content | safe }}</div>
+                            <small class="opacity-75">{{ msg.timestamp | datetime }}</small>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="d-flex">
+                        <div class="bg-light rounded p-3" style="max-width: 80%;">
+                            <div class="fw-bold mb-1 text-primary">
+                                {{ msg.agent_name | default(msg.role) }}
+                                <span class="badge bg-secondary ms-1">{{ all_agents.get(msg.role, {}).get('role', msg.role) }}</span>
+                            </div>
+                            <div>{{ msg.content | safe }}</div>
+                            <small class="text-muted">{{ msg.timestamp | datetime }}</small>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+                {% endif %}
+                
+                <!-- Typing Indicator -->
+                <div id="typing-indicator" class="d-none">
+                    <div class="d-flex align-items-center text-muted">
+                        <div class="spinner-grow spinner-grow-sm me-2" role="status"></div>
+                        <span id="typing-agent">Agents are thinking...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Input Form -->
+        {% if meeting.is_active %}
+        <div class="card content-card">
+            <div class="card-body">
+                <form id="message-form">
+                    <div class="input-group">
+                        <textarea class="form-control" id="message-input" name="message" rows="2" 
+                                  placeholder="Type your message to the team..." required></textarea>
+                        <button type="submit" class="btn btn-primary" id="send-btn">
+                            <i class="bi bi-send me-1"></i>Send
+                        </button>
+                    </div>
+                    <div class="form-text">
+                        Press Enter to send, Shift+Enter for new line
+                    </div>
+                </form>
+            </div>
+        </div>
+        {% else %}
+        <div class="alert alert-secondary">
+            <i class="bi bi-info-circle me-2"></i>
+            This meeting has ended. <a href="{{ url_for('group_meeting_new') }}">Start a new meeting</a>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-lg-3">
+        <!-- Participants List -->
+        <div class="card content-card mb-3">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-people me-2"></i>Participants ({{ agents|length }})</h6>
+            </div>
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush">
+                    {% for agent in agents %}
+                    <li class="list-group-item d-flex align-items-center">
+                        <span class="badge bg-{{ 'primary' if agent.team == 'Executive' else 'info' if agent.team == 'Technical' else 'warning' }} me-2">
+                            {{ agent.role }}
+                        </span>
+                        <small>{{ agent.name }}</small>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card content-card mb-3">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-lightning me-2"></i>Quick Prompts</h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <button type="button" class="btn btn-outline-secondary btn-sm quick-prompt" 
+                            data-prompt="Let's summarize what we've discussed so far and identify action items.">
+                        Summarize & Action Items
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm quick-prompt"
+                            data-prompt="What are the potential risks or concerns with this approach?">
+                        Identify Risks
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm quick-prompt"
+                            data-prompt="What should our next steps be?">
+                        Next Steps
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm quick-prompt"
+                            data-prompt="Does anyone have any concerns or objections?">
+                        Check for Concerns
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Meetings -->
+        <div class="card content-card">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-clock-history me-2"></i>Recent Meetings</h6>
+            </div>
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush">
+                    {% for m in recent_meetings[:5] %}
+                    <li class="list-group-item">
+                        <a href="{{ url_for('group_meeting_view', meeting_id=m.id) }}" 
+                           class="text-decoration-none {% if m.id == meeting.id %}fw-bold{% endif %}">
+                            {{ m.meeting_name }}
+                        </a>
+                        <br>
+                        <small class="text-muted">{{ m.started_at | datetime }}</small>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('message-form');
+    const input = document.getElementById('message-input');
+    const sendBtn = document.getElementById('send-btn');
+    const messagesContainer = document.getElementById('messages-container');
+    const typingIndicator = document.getElementById('typing-indicator');
+    const typingAgent = document.getElementById('typing-agent');
+    const emptyState = document.getElementById('empty-state');
+    
+    const meetingId = '{{ meeting.id }}';
+    const agents = {{ agents | tojson }};
+    
+    function scrollToBottom() {
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+    
+    function addUserMessage(content) {
+        if (emptyState) emptyState.remove();
+        
+        const msgDiv = document.createElement('div');
+        msgDiv.className = 'message mb-3 message-user';
+        msgDiv.innerHTML = '<div class="d-flex justify-content-end"><div class="bg-primary text-white rounded p-3" style="max-width: 80%;"><div class="fw-bold mb-1">You (Architect)</div><div>' + escapeHtml(content) + '</div><small class="opacity-75">Just now</small></div></div>';
+        messagesContainer.insertBefore(msgDiv, typingIndicator);
+        scrollToBottom();
+    }
+    
+    function addAgentMessage(agentId, agentName, agentRole, content) {
+        const msgDiv = document.createElement('div');
+        msgDiv.className = 'message mb-3 message-agent';
+        msgDiv.innerHTML = '<div class="d-flex"><div class="bg-light rounded p-3" style="max-width: 80%;"><div class="fw-bold mb-1 text-primary">' + escapeHtml(agentName) + ' <span class="badge bg-secondary ms-1">' + escapeHtml(agentRole) + '</span></div><div>' + escapeHtml(content) + '</div><small class="text-muted">Just now</small></div></div>';
+        messagesContainer.insertBefore(msgDiv, typingIndicator);
+        scrollToBottom();
+    }
+    
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+    
+    function setLoading(loading, agentName) {
+        if (loading) {
+            typingIndicator.classList.remove('d-none');
+            typingAgent.textContent = agentName ? agentName + ' is thinking...' : 'Agents are thinking...';
+            sendBtn.disabled = true;
+            input.disabled = true;
+        } else {
+            typingIndicator.classList.add('d-none');
+            sendBtn.disabled = false;
+            input.disabled = false;
+            input.focus();
+        }
+        scrollToBottom();
+    }
+    
+    if (form) {
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const message = input.value.trim();
+            if (!message) return;
+            
+            // Add user message
+            addUserMessage(message);
+            input.value = '';
+            
+            // Show loading
+            setLoading(true, null);
+            
+            try {
+                const formData = new FormData();
+                formData.append('message', message);
+                
+                const response = await fetch('/group-meetings/' + meetingId + '/send', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.success && data.responses) {
+                    // Add each agent response
+                    for (const resp of data.responses) {
+                        addAgentMessage(resp.agent_id, resp.agent_name, resp.agent_role, resp.response);
+                    }
+                } else if (data.error) {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Failed to send message. Please try again.');
+            } finally {
+                setLoading(false);
+            }
+        });
+        
+        // Enter to send
+        input.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                form.dispatchEvent(new Event('submit'));
+            }
+        });
+    }
+    
+    // Quick prompts
+    document.querySelectorAll('.quick-prompt').forEach(btn => {
+        btn.addEventListener('click', function() {
+            if (input) {
+                input.value = this.dataset.prompt;
+                input.focus();
+            }
+        });
+    });
+    
+    // Scroll to bottom on load
+    scrollToBottom();
+});
+</script>
+{% endblock %}

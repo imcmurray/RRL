@@ -51,7 +51,17 @@ The RRL AI Orchestrator is designed for anyone building software products who wa
 git clone https://github.com/imcmurray/RRL.git
 cd RRL
 
-# Run the setup wizard
+# Create and activate a virtual environment (recommended)
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Set your API key
+export ANTHROPIC_API_KEY="your-key-here"
+
+# Run the setup wizard and launch web dashboard
 python orchestrator.py setup --launch-web
 ```
 
@@ -371,7 +381,94 @@ The main dashboard shows:
 
 ## Working with AI Agents
 
-### Meeting Types
+### Two Ways to Interact
+
+You can interact with AI agents through:
+
+1. **CLI Meetings** — Multi-agent discussions via command line
+2. **Web Chat** — Real-time conversations through the dashboard
+
+### Web-Based Agent Chat
+
+The web dashboard provides a chat interface for each agent:
+
+1. Navigate to an agent's portal (`/agents/<agent_id>`)
+2. Click **"Start Chat"** in Quick Actions
+3. Have a real-time conversation with the AI agent
+
+**Benefits of Web Chat:**
+- Visual interface with message history
+- Conversation persistence (resume later)
+- Agent context automatically loaded
+- CEO can take actions on your behalf
+
+### CEO as Your AI Manager
+
+The CEO agent has special powers through web chat. You can have a conversation with the CEO and ask them to make changes across the entire system:
+
+```
+You: "I want all agents to focus on enterprise clients instead of startups"
+
+CEO: "I'll update the custom instructions for all agents to emphasize
+enterprise client focus. Here's what I'll do:
+
+[ACTION: broadcast_to_agents]
+{"agent_ids": "all", "instruction": "Focus on enterprise clients. Emphasize scalability, security, and compliance in all recommendations.", "append": true}
+[/ACTION]"
+
+→ Review the proposed action
+→ Click "Confirm" to execute
+→ All agents receive updated instructions
+```
+
+**What the CEO can do:**
+- Update any agent's settings, instructions, or responsibilities
+- Change company-wide settings (name, tagline, industry)
+- Create, approve, or reject feature requests
+- Update idea statuses in the pipeline
+- Broadcast instructions to all agents or specific groups
+- Modify reporting structures
+
+This makes the CEO your strategic AI partner who can manage the entire agent team on your behalf.
+
+### Web-Based Group Meetings
+
+Hold meetings with multiple AI agents through the web dashboard:
+
+1. Navigate to **Agent Portals** > **Start Group Meeting** (or go to `/group-meetings/new`)
+2. Choose a meeting type or select custom agents
+3. Enter your meeting topic
+4. Click **Start Meeting**
+
+**Meeting Presets:**
+
+| Preset | Participants | Best For |
+|--------|--------------|----------|
+| **Executive Meeting** | CEO, CFO, CITO, Sales, Legal | Strategic decisions |
+| **Technical Meeting** | CITO, Dev Lead, Design Lead, QA Lead | Architecture, quality |
+| **Product Meeting** | PM, Dev Lead, Design Lead, QA Lead | Sprint coordination |
+| **Operations Meeting** | PM, Customer Success, Marketing, Support | Day-to-day operations |
+| **All-Hands Meeting** | All 12 agents | Company-wide alignment |
+| **Idea Review** | CEO, CITO, CFO, Dev Lead, Design Lead, Marketing | Evaluate new ideas |
+| **Custom** | Your selection | Any combination |
+
+**How It Works:**
+1. You type a message to the team
+2. Each agent responds in turn based on their role
+3. Quick prompts help guide the conversation (summarize, identify risks, next steps)
+4. End the meeting when done - transcript is saved
+
+**Example:**
+```
+You: "Should we build a mobile app version of our product?"
+
+CEO: "From a strategic standpoint, mobile could expand our market reach..."
+CFO: "The budget implications we need to consider include..."
+CITO: "Technically, we have several options for mobile development..."
+Dev Lead: "Our current architecture would support mobile through..."
+```
+
+### CLI Meeting Types
 
 | Type | Best For | Participants |
 |------|----------|--------------|
@@ -481,6 +578,34 @@ python orchestrator.py tech-meeting --topic "Technical debt and improvements"
 python orchestrator.py ceo-sync --topic "Next month priorities"
 ```
 
+### Pivoting Your Business Focus (Using CEO Chat)
+
+When you need to change strategic direction across the entire team:
+
+1. **Start a CEO Chat** - Go to `/agents/ceo/chat`
+2. **Explain Your New Direction**
+   ```
+   You: "We're pivoting from B2C to B2B enterprise. All agents need to
+   adjust their thinking and recommendations accordingly."
+   ```
+3. **CEO Proposes Actions** - The CEO will suggest updates to agents
+4. **Confirm Each Action** - Review and approve the changes
+5. **Verify Updates** - Check agent portals to see new instructions
+
+Example conversation:
+```
+You: "Update all agents to focus on B2B enterprise instead of B2C"
+
+CEO: "I'll broadcast new instructions to all agents emphasizing B2B enterprise focus.
+
+[ACTION: broadcast_to_agents]
+{"agent_ids": "all", "instruction": "Our focus is now B2B enterprise clients. Prioritize scalability, security, compliance, and enterprise sales cycles in all recommendations.", "append": true}
+[/ACTION]"
+
+→ Click "Confirm"
+→ All 12 agents receive updated instructions
+```
+
 ---
 
 ## Customizing Your Company
@@ -538,11 +663,17 @@ For deeper customization:
 
 4. **Iterate on Topics** - If an answer isn't helpful, rephrase or provide more context
 
-5. **Mix CLI and Web** - Use CLI for meetings, web for data management
+5. **Mix CLI and Web** - Both CLI and web support group meetings; web is more visual, CLI is faster
 
 6. **Review Transcripts** - Meeting transcripts in `meetings/` folder contain valuable insights
 
 7. **Customize Your Company** - Use Settings to rebrand and adapt to your industry
+
+8. **Use CEO Chat for System Changes** - Let the CEO manage agent updates and settings through conversation
+
+9. **Customize Agent Instructions** - Add custom instructions via Settings to tailor each agent to your business
+
+10. **Use Web Group Meetings** - For visual discussions with multiple agents, use the web-based group meeting feature at `/group-meetings/new`
 
 ---
 

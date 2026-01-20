@@ -64,6 +64,189 @@ Agents can view and manage their submitted requests:
 
 Timeline of recent actions and request status changes.
 
+## Portal Tabs
+
+Each agent portal has multiple tabs for different functionality:
+
+### Overview Tab
+
+The main tab showing:
+- Agent profile and description
+- Key responsibilities and metrics
+- Custom instructions (if configured)
+- Recent activity timeline
+- Quick actions and navigation
+
+### Settings Tab
+
+Customize how the agent appears and behaves:
+
+| Setting | Description |
+|---------|-------------|
+| **Display Name** | Custom name shown in dashboard |
+| **Role Title** | Short title shown in badges |
+| **Description** | What this agent does |
+| **Responsibilities** | Key duties (one per line) |
+| **Key Metrics** | Performance indicators (one per line) |
+| **Custom Instructions** | Extra context for AI meetings |
+| **Reports To** | Who this agent reports to |
+| **Direct Reports** | Agents who report to this one |
+| **Collaborates With** | Key collaboration relationships |
+
+Settings are stored in `data/agent_customizations.json` and affect both the web interface and CLI meetings.
+
+### Feature Requests Tab
+
+View and manage the agent's submitted requests (see [Feature Request System](#feature-request-system)).
+
+### How It Works Tab
+
+Documentation explaining how this agent functions within the orchestrator system.
+
+## Web-Based Agent Chat
+
+Each agent has a chat interface for real-time conversations through the web dashboard.
+
+### Accessing Chat
+
+1. Navigate to an agent's portal: `/agents/<agent_id>`
+2. Click **"Start Chat"** in Quick Actions
+3. Or go directly to: `/agents/<agent_id>/chat`
+
+### Chat Features
+
+- **Real-time messaging** — Send messages and receive AI responses
+- **Conversation history** — Chat sessions are persisted and can be resumed
+- **Agent context** — The AI has access to the agent's role, responsibilities, and custom instructions
+- **Conversation starters** — Quick prompts to begin discussions
+
+### CEO Chat: Special Powers
+
+The CEO agent has enhanced capabilities through the chat interface:
+
+| Capability | Description |
+|------------|-------------|
+| **Update Agent Settings** | Modify any agent's display name, role, instructions, etc. |
+| **Update Company Settings** | Change company name, tagline, industry |
+| **Create Feature Requests** | Submit requests on behalf of agents |
+| **Approve/Reject Requests** | Process pending feature requests |
+| **Update Idea Status** | Move ideas through the pipeline |
+| **Broadcast Instructions** | Add instructions to multiple agents at once |
+| **Update Reporting Structure** | Change who reports to whom |
+
+When the CEO proposes an action, it appears as a confirmation panel. You must **Confirm** or **Dismiss** before the action executes.
+
+### CEO Action Format
+
+The CEO can include actions in responses using this format:
+
+```
+[ACTION: action_type]
+{"parameter": "value"}
+[/ACTION]
+```
+
+Example CEO interaction:
+```
+You: "Update the CFO to focus on bootstrapped startups"
+
+CEO: "I'll update the CFO's custom instructions to emphasize
+bootstrapped startup financial strategies.
+
+[ACTION: update_agent_settings]
+{"agent_id": "cfo", "updates": {"custom_instructions": "Focus on bootstrapped startups with limited runway. Emphasize capital efficiency and sustainable growth over aggressive spending."}}
+[/ACTION]"
+
+→ Confirmation panel appears
+→ Click "Confirm" to execute
+→ CFO's settings are updated
+```
+
+### Available CEO Actions
+
+| Action | Parameters | Description |
+|--------|------------|-------------|
+| `update_agent_settings` | `agent_id`, `updates` | Update agent configuration |
+| `update_company_settings` | `updates` | Change company name/tagline/industry |
+| `create_feature_request` | `agent_id`, `title`, `description`, `priority`, `request_type` | Create a feature request |
+| `approve_feature_request` | `request_id`, `notes` | Approve a pending request |
+| `reject_feature_request` | `request_id`, `reason` | Reject a pending request |
+| `update_idea_status` | `idea_id`, `new_status`, `notes` | Change an idea's status |
+| `broadcast_to_agents` | `agent_ids`, `instruction`, `append` | Add instructions to multiple agents |
+| `update_reporting_structure` | `agent_id`, `reports_to`, `direct_reports` | Change reporting hierarchy |
+
+### Chat Data Storage
+
+Chat sessions are stored in `data/agent_chats.json`:
+
+```json
+{
+  "id": "uuid",
+  "agent_id": "ceo",
+  "topic": "Strategic planning",
+  "messages": [
+    {"role": "user", "content": "...", "timestamp": "..."},
+    {"role": "assistant", "content": "...", "timestamp": "..."}
+  ],
+  "started_at": "2026-01-20T10:00:00",
+  "ended_at": null,
+  "is_active": true
+}
+```
+
+## Web-Based Group Meetings
+
+In addition to 1:1 chat with agents, you can hold group meetings with multiple agents through the web dashboard.
+
+### Accessing Group Meetings
+
+1. Navigate to **Agent Portals** > **Start Group Meeting**
+2. Or go directly to: `/group-meetings/new`
+3. Or from the agents list page, click **Start Meeting**
+
+### Meeting Presets
+
+Choose from preset meeting configurations or create custom combinations:
+
+| Preset | Agents | Best For |
+|--------|--------|----------|
+| **Executive Meeting** | CEO, CFO, CITO, Sales, Legal | Strategic business decisions |
+| **Technical Meeting** | CITO, Dev Lead, Design Lead, QA Lead | Architecture, technical quality |
+| **Product Meeting** | PM, Dev Lead, Design Lead, QA Lead | Sprint planning, product features |
+| **Operations Meeting** | PM, Customer Success, Marketing, Support | Day-to-day operations |
+| **All-Hands Meeting** | All 12 agents | Company-wide alignment |
+| **Idea Review** | CEO, CITO, CFO, Dev Lead, Design Lead, Marketing | Evaluating new ideas |
+| **Custom Meeting** | Your selection | Any agent combination |
+
+### Meeting Features
+
+- **Multi-agent responses** — All participants respond to your messages in turn
+- **Role-specific perspectives** — Each agent contributes their unique viewpoint
+- **Quick prompts** — Built-in prompts for summarizing, identifying risks, next steps
+- **Conversation history** — Meetings are saved and can be reviewed later
+- **Active/Ended status** — End meetings when done, start new ones anytime
+
+### Group Meeting Data Storage
+
+Meetings are stored in `data/meetings.json`:
+
+```json
+{
+  "id": "uuid",
+  "meeting_type": "exec",
+  "meeting_name": "Executive Meeting",
+  "topic": "Q1 Planning",
+  "agent_ids": ["ceo", "cfo", "cito", "sales", "legal"],
+  "messages": [
+    {"role": "user", "content": "...", "timestamp": "..."},
+    {"role": "ceo", "content": "...", "agent_name": "Alex Chen", "timestamp": "..."}
+  ],
+  "started_at": "2026-01-20T10:00:00",
+  "ended_at": null,
+  "is_active": true
+}
+```
+
 ## Feature Request System
 
 ### Request Types
