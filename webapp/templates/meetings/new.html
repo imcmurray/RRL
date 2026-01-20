@@ -1,0 +1,272 @@
+{% extends "base.html" %}
+
+{% block title %}New Meeting{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('group_meetings_list') }}">Meetings</a></li>
+                <li class="breadcrumb-item active">New Meeting</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h1 class="h3">
+            <i class="bi bi-plus-circle me-2"></i>Start a New Meeting
+        </h1>
+        <p class="text-muted">Choose a preset meeting type or select custom agents</p>
+    </div>
+</div>
+
+<form action="{{ url_for('group_meeting_new') }}" method="POST" id="meeting-form">
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Meeting Topic -->
+            <div class="card content-card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-chat-text me-2"></i>Meeting Topic</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="topic" class="form-label">What do you want to discuss?</label>
+                        <textarea class="form-control" id="topic" name="topic" rows="3" 
+                                  placeholder="e.g., Q1 planning and priorities, New product feature review, Technical architecture decisions..."
+                                  required></textarea>
+                        <div class="form-text">Be specific - the agents will respond based on this topic.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Meeting Type Selection -->
+            <div class="card content-card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-grid me-2"></i>Meeting Type</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% for preset_id, preset in presets.items() %}
+                        <div class="col-md-6 mb-3">
+                            <div class="form-check card p-3 h-100 meeting-type-card" data-preset="{{ preset_id }}">
+                                <input class="form-check-input" type="radio" name="meeting_type" 
+                                       id="type-{{ preset_id }}" value="{{ preset_id }}"
+                                       {% if request.args.get('type') == preset_id %}checked{% endif %}>
+                                <label class="form-check-label w-100" for="type-{{ preset_id }}">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <span class="badge bg-{{ preset.color }} me-2">
+                                            <i class="bi bi-{{ preset.icon }}"></i>
+                                        </span>
+                                        <strong>{{ preset.name }}</strong>
+                                    </div>
+                                    <p class="text-muted small mb-2">{{ preset.description }}</p>
+                                    <div>
+                                        {% for agent_id in preset.agents %}
+                                        <span class="badge bg-light text-dark me-1 mb-1">{{ all_agents[agent_id].role if agent_id in all_agents else agent_id }}</span>
+                                        {% endfor %}
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+                        {% endfor %}
+                        
+                        <!-- Custom Option -->
+                        <div class="col-md-6 mb-3">
+                            <div class="form-check card p-3 h-100 meeting-type-card" data-preset="custom">
+                                <input class="form-check-input" type="radio" name="meeting_type" 
+                                       id="type-custom" value="custom"
+                                       {% if not request.args.get('type') %}checked{% endif %}>
+                                <label class="form-check-label w-100" for="type-custom">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <span class="badge bg-dark me-2">
+                                            <i class="bi bi-sliders"></i>
+                                        </span>
+                                        <strong>Custom Meeting</strong>
+                                    </div>
+                                    <p class="text-muted small mb-2">Choose exactly which agents to include</p>
+                                    <span class="badge bg-light text-dark">Select agents below</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Custom Agent Selection -->
+            <div class="card content-card mb-4" id="custom-agents-section">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="bi bi-person-check me-2"></i>Select Agents</h5>
+                    <div>
+                        <button type="button" class="btn btn-sm btn-outline-primary" id="select-all-btn">Select All</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" id="clear-all-btn">Clear All</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <input type="text" class="form-control mb-3" id="meeting_name" name="meeting_name" 
+                           placeholder="Custom meeting name (optional)" value="">
+                    
+                    <h6 class="text-muted mb-3">Executive Team</h6>
+                    <div class="row mb-4">
+                        {% for agent_id, agent in all_agents.items() if agent.team == 'Executive' %}
+                        <div class="col-md-4 col-sm-6 mb-2">
+                            <div class="form-check">
+                                <input class="form-check-input agent-checkbox" type="checkbox" 
+                                       name="agents" value="{{ agent_id }}" id="agent-{{ agent_id }}">
+                                <label class="form-check-label" for="agent-{{ agent_id }}">
+                                    <strong>{{ agent.role }}</strong>
+                                    <br><small class="text-muted">{{ agent.name }}</small>
+                                </label>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <h6 class="text-muted mb-3">Product & Engineering</h6>
+                    <div class="row mb-4">
+                        {% for agent_id, agent in all_agents.items() if agent.team == 'Technical' %}
+                        <div class="col-md-4 col-sm-6 mb-2">
+                            <div class="form-check">
+                                <input class="form-check-input agent-checkbox" type="checkbox" 
+                                       name="agents" value="{{ agent_id }}" id="agent-{{ agent_id }}">
+                                <label class="form-check-label" for="agent-{{ agent_id }}">
+                                    <strong>{{ agent.role }}</strong>
+                                    <br><small class="text-muted">{{ agent.name }}</small>
+                                </label>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <h6 class="text-muted mb-3">Operations</h6>
+                    <div class="row">
+                        {% for agent_id, agent in all_agents.items() if agent.team == 'Operations' %}
+                        <div class="col-md-4 col-sm-6 mb-2">
+                            <div class="form-check">
+                                <input class="form-check-input agent-checkbox" type="checkbox" 
+                                       name="agents" value="{{ agent_id }}" id="agent-{{ agent_id }}">
+                                <label class="form-check-label" for="agent-{{ agent_id }}">
+                                    <strong>{{ agent.role }}</strong>
+                                    <br><small class="text-muted">{{ agent.name }}</small>
+                                </label>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <!-- Summary Card -->
+            <div class="card content-card sticky-top" style="top: 1rem;">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i>Meeting Summary</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <strong>Selected Type:</strong>
+                        <span id="selected-type-display">Custom Meeting</span>
+                    </div>
+                    <div class="mb-3">
+                        <strong>Participants:</strong>
+                        <div id="selected-agents-display" class="mt-2">
+                            <span class="text-muted">No agents selected</span>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="bi bi-play-fill me-2"></i>Start Meeting
+                        </button>
+                    </div>
+                    <p class="small text-muted mt-2 mb-0">
+                        Each agent will respond to your messages in turn.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const presets = {{ presets | tojson }};
+    const allAgents = {{ all_agents | tojson }};
+    const typeRadios = document.querySelectorAll('input[name="meeting_type"]');
+    const agentCheckboxes = document.querySelectorAll('.agent-checkbox');
+    const customSection = document.getElementById('custom-agents-section');
+    const selectedTypeDisplay = document.getElementById('selected-type-display');
+    const selectedAgentsDisplay = document.getElementById('selected-agents-display');
+    
+    function updateDisplay() {
+        const selectedType = document.querySelector('input[name="meeting_type"]:checked');
+        if (!selectedType) return;
+        
+        const typeValue = selectedType.value;
+        
+        if (typeValue === 'custom') {
+            customSection.style.display = 'block';
+            selectedTypeDisplay.textContent = 'Custom Meeting';
+            
+            const selected = Array.from(agentCheckboxes).filter(cb => cb.checked);
+            if (selected.length === 0) {
+                selectedAgentsDisplay.innerHTML = '<span class="text-muted">No agents selected</span>';
+            } else {
+                selectedAgentsDisplay.innerHTML = selected.map(cb => {
+                    const agent = allAgents[cb.value];
+                    return '<span class="badge bg-secondary me-1 mb-1">' + (agent ? agent.role : cb.value) + '</span>';
+                }).join('');
+            }
+        } else {
+            customSection.style.display = 'none';
+            const preset = presets[typeValue];
+            selectedTypeDisplay.textContent = preset ? preset.name : typeValue;
+            
+            if (preset && preset.agents) {
+                selectedAgentsDisplay.innerHTML = preset.agents.map(aid => {
+                    const agent = allAgents[aid];
+                    return '<span class="badge bg-secondary me-1 mb-1">' + (agent ? agent.role : aid) + '</span>';
+                }).join('');
+            }
+        }
+    }
+    
+    typeRadios.forEach(radio => {
+        radio.addEventListener('change', updateDisplay);
+    });
+    
+    agentCheckboxes.forEach(cb => {
+        cb.addEventListener('change', updateDisplay);
+    });
+    
+    document.getElementById('select-all-btn').addEventListener('click', function() {
+        agentCheckboxes.forEach(cb => cb.checked = true);
+        updateDisplay();
+    });
+    
+    document.getElementById('clear-all-btn').addEventListener('click', function() {
+        agentCheckboxes.forEach(cb => cb.checked = false);
+        updateDisplay();
+    });
+    
+    document.querySelectorAll('.meeting-type-card').forEach(card => {
+        card.addEventListener('click', function(e) {
+            if (e.target.type !== 'radio') {
+                const radio = this.querySelector('input[type="radio"]');
+                if (radio) {
+                    radio.checked = true;
+                    radio.dispatchEvent(new Event('change'));
+                }
+            }
+        });
+    });
+    
+    updateDisplay();
+});
+</script>
+{% endblock %}

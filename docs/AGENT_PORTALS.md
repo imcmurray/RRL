@@ -194,6 +194,59 @@ Chat sessions are stored in `data/agent_chats.json`:
 }
 ```
 
+## Web-Based Group Meetings
+
+In addition to 1:1 chat with agents, you can hold group meetings with multiple agents through the web dashboard.
+
+### Accessing Group Meetings
+
+1. Navigate to **Agent Portals** > **Start Group Meeting**
+2. Or go directly to: `/group-meetings/new`
+3. Or from the agents list page, click **Start Meeting**
+
+### Meeting Presets
+
+Choose from preset meeting configurations or create custom combinations:
+
+| Preset | Agents | Best For |
+|--------|--------|----------|
+| **Executive Meeting** | CEO, CFO, CITO, Sales, Legal | Strategic business decisions |
+| **Technical Meeting** | CITO, Dev Lead, Design Lead, QA Lead | Architecture, technical quality |
+| **Product Meeting** | PM, Dev Lead, Design Lead, QA Lead | Sprint planning, product features |
+| **Operations Meeting** | PM, Customer Success, Marketing, Support | Day-to-day operations |
+| **All-Hands Meeting** | All 12 agents | Company-wide alignment |
+| **Idea Review** | CEO, CITO, CFO, Dev Lead, Design Lead, Marketing | Evaluating new ideas |
+| **Custom Meeting** | Your selection | Any agent combination |
+
+### Meeting Features
+
+- **Multi-agent responses** — All participants respond to your messages in turn
+- **Role-specific perspectives** — Each agent contributes their unique viewpoint
+- **Quick prompts** — Built-in prompts for summarizing, identifying risks, next steps
+- **Conversation history** — Meetings are saved and can be reviewed later
+- **Active/Ended status** — End meetings when done, start new ones anytime
+
+### Group Meeting Data Storage
+
+Meetings are stored in `data/meetings.json`:
+
+```json
+{
+  "id": "uuid",
+  "meeting_type": "exec",
+  "meeting_name": "Executive Meeting",
+  "topic": "Q1 Planning",
+  "agent_ids": ["ceo", "cfo", "cito", "sales", "legal"],
+  "messages": [
+    {"role": "user", "content": "...", "timestamp": "..."},
+    {"role": "ceo", "content": "...", "agent_name": "Alex Chen", "timestamp": "..."}
+  ],
+  "started_at": "2026-01-20T10:00:00",
+  "ended_at": null,
+  "is_active": true
+}
+```
+
 ## Feature Request System
 
 ### Request Types

@@ -23,6 +23,7 @@ from src.data_store import (
     get_settings_store,
     get_agent_customizations_store,
     get_agent_chat_store,
+    get_meeting_store,
     IdeaStatus,
     TesterStatus,
     ProjectStatus,
@@ -32,6 +33,7 @@ from src.data_store import (
     FeatureRequestPriority,
     INDUSTRY_PRESETS,
     AGENT_DOCUMENTATION,
+    MEETING_PRESETS,
 )
 from src import reports
 from src.utils import query_decisions, list_meetings, load_file, load_context
@@ -2059,6 +2061,202 @@ def ceo_execute_action():
     result = executor.execute(action_type, parameters)
 
     return jsonify(result)
+
+
+# =============================================================================
+# GROUP MEETINGS (Web-based)
+# =============================================================================
+
+@app.route('/group-meetings')
+def group_meetings_list():
+    """List all web-based group meetings and meeting presets."""
+    meeting_store = get_meeting_store()
+    recent_meetings = meeting_store.get_recent_meetings(limit=20)
+
+    # Enrich with agent info
+    for meeting in recent_meetings:
+        meeting['_agents'] = [AGENT_INFO.get(aid, {}) for aid in meeting.get('agent_ids', [])]
+
+    return render_template('meetings/group_list.html',
+        meetings=recent_meetings,
+        presets=MEETING_PRESETS,
+        all_agents=AGENT_INFO
+    )
+
+
+@app.route('/group-meetings/new', methods=['GET', 'POST'])
+def group_meeting_new():
+    """Create a new group meeting."""
+    if request.method == 'POST':
+        meeting_type = request.form.get('meeting_type', 'custom')
+        topic = request.form.get('topic', '').strip()
+
+        if meeting_type == 'custom':
+            # Get selected agents from form
+            agent_ids = request.form.getlist('agents')
+            meeting_name = request.form.get('meeting_name', 'Custom Meeting')
+        else:
+            # Use preset agents
+            preset = MEETING_PRESETS.get(meeting_type, {})
+            agent_ids = preset.get('agents', [])
+            meeting_name = preset.get('name', 'Meeting')
+
+        if not agent_ids:
+            flash('Please select at least one agent for the meeting.', 'error')
+            return redirect(url_for('group_meeting_new'))
+
+        if not topic:
+            flash('Please provide a topic for the meeting.', 'error')
+            return redirect(url_for('group_meeting_new'))
+
+        # Create meeting
+        meeting_store = get_meeting_store()
+        meeting = meeting_store.create_meeting(
+            meeting_type=meeting_type,
+            topic=topic,
+            agent_ids=agent_ids,
+            meeting_name=meeting_name,
+        )
+
+        return redirect(url_for('group_meeting_view', meeting_id=meeting['id']))
+
+    return render_template('meetings/new.html',
+        presets=MEETING_PRESETS,
+        all_agents=AGENT_INFO
+    )
+
+
+@app.route('/group-meetings/<meeting_id>')
+def group_meeting_view(meeting_id):
+    """View and continue a group meeting."""
+    meeting_store = get_meeting_store()
+    meeting = meeting_store.get_by_id(meeting_id)
+
+    if not meeting:
+        flash('Meeting not found', 'error')
+        return redirect(url_for('group_meetings_list'))
+
+    # Enrich with agent info
+    agents = []
+    for agent_id in meeting.get('agent_ids', []):
+        if agent_id in AGENT_INFO:
+            agents.append({
+                'id': agent_id,
+                **AGENT_INFO[agent_id]
+            })
+
+    # Get recent meetings for sidebar
+    recent_meetings = meeting_store.get_recent_meetings(limit=5)
+
+    return render_template('meetings/chat.html',
+        meeting=meeting,
+        agents=agents,
+        all_agents=AGENT_INFO,
+        recent_meetings=recent_meetings,
+        presets=MEETING_PRESETS
+    )
+
+
+@app.route('/group-meetings/<meeting_id>/send', methods=['POST'])
+def group_meeting_send(meeting_id):
+    """Send a message to the meeting and get responses from all agents."""
+    meeting_store = get_meeting_store()
+    meeting = meeting_store.get_by_id(meeting_id)
+
+    if not meeting:
+        return jsonify({'error': 'Meeting not found'}), 404
+
+    if not meeting.get('is_active', True):
+        return jsonify({'error': 'Meeting has ended'}), 400
+
+    message = request.form.get('message', '').strip()
+    if not message:
+        return jsonify({'error': 'Message is required'}), 400
+
+    # Add user message
+    meeting_store.add_message(meeting_id, 'user', message)
+
+    # Get responses from all agents in the meeting
+    responses = []
+    customizations_store = get_agent_customizations_store()
+
+    # Build context
+    context = load_context(['company'])
+    context += f"\n\n## Meeting Context\n\nThis is a group meeting with topic: {meeting.get('topic', 'General discussion')}\n"
+    context += f"Participating agents: {', '.join([AGENT_INFO.get(aid, {}).get('name', aid) for aid in meeting.get('agent_ids', [])])}\n"
+
+    # Build prior discussion from meeting messages
+    prior_discussion = ""
+    for msg in meeting.get('messages', []):
+        if msg['role'] == 'user':
+            role_label = "Architect"
+        else:
+            role_label = msg.get('agent_name', msg['role'])
+        prior_discussion += f"**{role_label}:** {msg['content']}\n\n"
+
+    try:
+        for agent_id in meeting.get('agent_ids', []):
+            if agent_id not in AGENT_INFO:
+                continue
+
+            # Get customizations
+            customizations = customizations_store.get_agent(agent_id)
+            agent_context = context
+            if customizations.get('custom_instructions'):
+                agent_context += f"\n\n## Your Custom Instructions\n\n{customizations['custom_instructions']}"
+
+            # Add guidance for group meeting
+            agent_context += f"\n\n## Group Meeting Guidelines\n\nYou are in a group meeting. Keep your response focused and concise (2-4 paragraphs). Other agents will also respond. Don't repeat what others have said - add your unique perspective based on your role as {AGENT_INFO[agent_id]['role']}."
+
+            # Get agent response
+            agent = Agent(agent_id)
+            response = agent.respond(
+                prompt=message,
+                context=agent_context,
+                prior_discussion=prior_discussion,
+            )
+
+            # Add to meeting
+            meeting_store.add_message(
+                meeting_id,
+                agent_id,
+                response,
+                agent_name=AGENT_INFO[agent_id]['name']
+            )
+
+            responses.append({
+                'agent_id': agent_id,
+                'agent_name': AGENT_INFO[agent_id]['name'],
+                'agent_role': AGENT_INFO[agent_id]['role'],
+                'response': response,
+                'timestamp': datetime.now().isoformat(),
+            })
+
+            # Update prior discussion for next agent
+            prior_discussion += f"**{AGENT_INFO[agent_id]['name']}:** {response}\n\n"
+
+        return jsonify({
+            'success': True,
+            'responses': responses,
+        })
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/group-meetings/<meeting_id>/end', methods=['POST'])
+def group_meeting_end(meeting_id):
+    """End a group meeting."""
+    meeting_store = get_meeting_store()
+    meeting = meeting_store.get_by_id(meeting_id)
+
+    if not meeting:
+        flash('Meeting not found', 'error')
+        return redirect(url_for('group_meetings_list'))
+
+    meeting_store.end_meeting(meeting_id)
+    flash('Meeting ended.', 'success')
+    return redirect(url_for('group_meetings_list'))
 
 
 @app.route('/agents/<agent_id>/request/new', methods=['GET', 'POST'])

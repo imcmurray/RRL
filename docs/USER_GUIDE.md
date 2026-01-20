@@ -421,6 +421,43 @@ enterprise client focus. Here's what I'll do:
 
 This makes the CEO your strategic AI partner who can manage the entire agent team on your behalf.
 
+### Web-Based Group Meetings
+
+Hold meetings with multiple AI agents through the web dashboard:
+
+1. Navigate to **Agent Portals** > **Start Group Meeting** (or go to `/group-meetings/new`)
+2. Choose a meeting type or select custom agents
+3. Enter your meeting topic
+4. Click **Start Meeting**
+
+**Meeting Presets:**
+
+| Preset | Participants | Best For |
+|--------|--------------|----------|
+| **Executive Meeting** | CEO, CFO, CITO, Sales, Legal | Strategic decisions |
+| **Technical Meeting** | CITO, Dev Lead, Design Lead, QA Lead | Architecture, quality |
+| **Product Meeting** | PM, Dev Lead, Design Lead, QA Lead | Sprint coordination |
+| **Operations Meeting** | PM, Customer Success, Marketing, Support | Day-to-day operations |
+| **All-Hands Meeting** | All 12 agents | Company-wide alignment |
+| **Idea Review** | CEO, CITO, CFO, Dev Lead, Design Lead, Marketing | Evaluate new ideas |
+| **Custom** | Your selection | Any combination |
+
+**How It Works:**
+1. You type a message to the team
+2. Each agent responds in turn based on their role
+3. Quick prompts help guide the conversation (summarize, identify risks, next steps)
+4. End the meeting when done - transcript is saved
+
+**Example:**
+```
+You: "Should we build a mobile app version of our product?"
+
+CEO: "From a strategic standpoint, mobile could expand our market reach..."
+CFO: "The budget implications we need to consider include..."
+CITO: "Technically, we have several options for mobile development..."
+Dev Lead: "Our current architecture would support mobile through..."
+```
+
 ### CLI Meeting Types
 
 | Type | Best For | Participants |
@@ -616,7 +653,7 @@ For deeper customization:
 
 4. **Iterate on Topics** - If an answer isn't helpful, rephrase or provide more context
 
-5. **Mix CLI and Web** - Use CLI for group meetings, web chat for 1:1 conversations
+5. **Mix CLI and Web** - Both CLI and web support group meetings; web is more visual, CLI is faster
 
 6. **Review Transcripts** - Meeting transcripts in `meetings/` folder contain valuable insights
 
@@ -625,6 +662,8 @@ For deeper customization:
 8. **Use CEO Chat for System Changes** - Let the CEO manage agent updates and settings through conversation
 
 9. **Customize Agent Instructions** - Add custom instructions via Settings to tailor each agent to your business
+
+10. **Use Web Group Meetings** - For visual discussions with multiple agents, use the web-based group meeting feature at `/group-meetings/new`
 
 ---
 

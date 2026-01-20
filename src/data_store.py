@@ -1545,6 +1545,144 @@ class AgentChatStore(DataStore):
 
 
 # =============================================================================
+# MEETING STORE (Group Meetings)
+# =============================================================================
+
+# Preset meeting types matching CLI
+MEETING_PRESETS = {
+    "exec": {
+        "name": "Executive Meeting",
+        "description": "Strategic business decisions with leadership team",
+        "agents": ["ceo", "cfo", "cito", "sales", "legal"],
+        "icon": "briefcase",
+        "color": "primary",
+    },
+    "tech": {
+        "name": "Technical Meeting",
+        "description": "Architecture, quality, and technical decisions",
+        "agents": ["cito", "dev_lead", "design_lead", "qa_lead"],
+        "icon": "code-slash",
+        "color": "info",
+    },
+    "product": {
+        "name": "Product Meeting",
+        "description": "Product development and project coordination",
+        "agents": ["pm", "dev_lead", "design_lead", "qa_lead"],
+        "icon": "kanban",
+        "color": "success",
+    },
+    "operations": {
+        "name": "Operations Meeting",
+        "description": "Day-to-day operations and customer focus",
+        "agents": ["pm", "customer_success", "marketing", "support"],
+        "icon": "gear",
+        "color": "warning",
+    },
+    "all_hands": {
+        "name": "All-Hands Meeting",
+        "description": "Full team alignment with all 12 agents",
+        "agents": ["ceo", "cfo", "cito", "sales", "legal", "dev_lead", "design_lead", "qa_lead", "pm", "customer_success", "marketing", "support"],
+        "icon": "people",
+        "color": "danger",
+    },
+    "idea_review": {
+        "name": "Idea Review",
+        "description": "Evaluate new ideas with key stakeholders",
+        "agents": ["ceo", "cito", "cfo", "dev_lead", "design_lead", "marketing"],
+        "icon": "lightbulb",
+        "color": "secondary",
+    },
+}
+
+
+class MeetingStore(DataStore):
+    """Store for group meetings with multiple agents."""
+
+    def __init__(self):
+        super().__init__("meetings")
+
+    def create_meeting(
+        self,
+        meeting_type: str,  # "exec", "tech", "custom", etc.
+        topic: str,
+        agent_ids: list[str],
+        meeting_name: str = "",
+    ) -> dict[str, Any]:
+        """Create a new group meeting."""
+        # Get preset info if available
+        preset = MEETING_PRESETS.get(meeting_type, {})
+
+        return self.create({
+            "meeting_type": meeting_type,
+            "meeting_name": meeting_name or preset.get("name", "Custom Meeting"),
+            "topic": topic,
+            "agent_ids": agent_ids,
+            "messages": [],
+            "started_at": datetime.now().isoformat(),
+            "last_message_at": None,
+            "is_active": True,
+            "summary": None,
+        })
+
+    def add_message(
+        self,
+        meeting_id: str,
+        role: str,  # "user" or agent_id
+        content: str,
+        agent_name: str = None,  # Display name for agent messages
+    ) -> dict[str, Any] | None:
+        """Add a message to a meeting."""
+        meeting = self.get_by_id(meeting_id)
+        if not meeting:
+            return None
+
+        messages = meeting.get("messages", [])
+        message_data = {
+            "role": role,
+            "content": content,
+            "timestamp": datetime.now().isoformat(),
+        }
+        if agent_name:
+            message_data["agent_name"] = agent_name
+
+        messages.append(message_data)
+
+        return self.update(meeting_id, {
+            "messages": messages,
+            "last_message_at": datetime.now().isoformat(),
+        })
+
+    def end_meeting(self, meeting_id: str, summary: str = None) -> dict[str, Any] | None:
+        """Mark a meeting as ended."""
+        updates = {
+            "is_active": False,
+            "ended_at": datetime.now().isoformat(),
+        }
+        if summary:
+            updates["summary"] = summary
+        return self.update(meeting_id, updates)
+
+    def get_active_meetings(self) -> list[dict[str, Any]]:
+        """Get all active meetings."""
+        meetings = self.query(is_active=True)
+        return sorted(meetings, key=lambda x: x.get("started_at", ""), reverse=True)
+
+    def get_recent_meetings(self, limit: int = 10) -> list[dict[str, Any]]:
+        """Get most recent meetings."""
+        all_meetings = self.get_all()
+        sorted_meetings = sorted(
+            all_meetings,
+            key=lambda x: x.get("last_message_at") or x.get("started_at", ""),
+            reverse=True
+        )
+        return sorted_meetings[:limit]
+
+    def get_by_type(self, meeting_type: str) -> list[dict[str, Any]]:
+        """Get meetings by type."""
+        return self.query(meeting_type=meeting_type)
+
+
+# =============================================================================
 # CONVENIENCE FUNCTIONS
 # =============================================================================
 
@@ -1558,6 +1696,7 @@ _agent_requests_store: AgentRequestsStore | None = None
 _settings_store: SettingsStore | None = None
 _agent_customizations_store: AgentCustomizationsStore | None = None
 _agent_chat_store: AgentChatStore | None = None
+_meeting_store: MeetingStore | None = None
 
 
 def get_ideas_store() -> IdeasStore:
@@ -1630,3 +1769,11 @@ def get_agent_chat_store() -> AgentChatStore:
     if _agent_chat_store is None:
         _agent_chat_store = AgentChatStore()
     return _agent_chat_store
+
+
+def get_meeting_store() -> MeetingStore:
+    """Get the meeting store singleton."""
+    global _meeting_store
+    if _meeting_store is None:
+        _meeting_store = MeetingStore()
+    return _meeting_store
