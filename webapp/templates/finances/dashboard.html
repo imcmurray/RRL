@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+
+{% block title %}Finances{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-6">
+        <h1 class="h3">Financial Dashboard</h1>
+        <p class="text-muted">Overview of company finances</p>
+    </div>
+    <div class="col-md-6 text-end">
+        <a href="{{ url_for('finances_invoice_new') }}" class="btn btn-primary">
+            <i class="bi bi-receipt me-1"></i>New Invoice
+        </a>
+        <a href="{{ url_for('finances_payment_new') }}" class="btn btn-outline-success">
+            <i class="bi bi-cash me-1"></i>Record Payment
+        </a>
+    </div>
+</div>
+
+<!-- Financial Metrics -->
+<div class="row mb-4">
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card stats-card">
+            <div class="card-body finance-metric">
+                <div class="value text-success">{{ total_paid | currency }}</div>
+                <div class="label">Total Paid</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card stats-card">
+            <div class="card-body finance-metric">
+                <div class="value text-primary">{{ total_invoiced | currency }}</div>
+                <div class="label">Total Invoiced</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card stats-card">
+            <div class="card-body finance-metric">
+                <div class="value text-warning">{{ total_outstanding | currency }}</div>
+                <div class="label">Outstanding</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card stats-card">
+            <div class="card-body finance-metric">
+                <div class="value text-info">{{ invoices | length }}</div>
+                <div class="label">Total Invoices</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Invoices -->
+    <div class="col-lg-8 mb-4">
+        <div class="card content-card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-receipt me-2"></i>Recent Invoices</h5>
+                <a href="{{ url_for('finances_invoices') }}" class="btn btn-sm btn-outline-primary">View All</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Invoice #</th>
+                                <th>Client</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                                <th>Due Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for invoice in invoices %}
+                            <tr>
+                                <td><a href="{{ url_for('finances_invoice_detail', invoice_id=invoice.id) }}">{{ invoice.invoice_number or invoice.id[:8] }}</a></td>
+                                <td>{{ invoice.client_name or '-' }}</td>
+                                <td>{{ invoice.amount | currency }}</td>
+                                <td><span class="badge badge-status badge-{{ invoice.status }}">{{ invoice.status | title }}</span></td>
+                                <td>{{ invoice.due_date | datetime if invoice.due_date else '-' }}</td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="{{ url_for('finances_invoice_detail', invoice_id=invoice.id) }}" class="btn btn-outline-primary btn-action">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        {% if invoice.status != 'paid' %}
+                                        <a href="{{ url_for('finances_payment_new') }}?invoice_id={{ invoice.id }}" class="btn btn-outline-success btn-action">
+                                            <i class="bi bi-cash"></i>
+                                        </a>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="6" class="text-center py-4 text-muted">No invoices yet</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Payments -->
+    <div class="col-lg-4 mb-4">
+        <div class="card content-card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-cash me-2"></i>Recent Payments</h5>
+                <a href="{{ url_for('finances_payments') }}" class="btn btn-sm btn-outline-primary">View All</a>
+            </div>
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush">
+                    {% for payment in payments %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>{{ payment.amount | currency }}</strong>
+                            <br>
+                            <small class="text-muted">{{ payment.client_name or 'Client' }} - {{ payment.date | datetime }}</small>
+                        </div>
+                        <span class="badge bg-{{ 'success' if payment.type == 'income' else 'danger' }}">
+                            {{ payment.type | title }}
+                        </span>
+                    </li>
+                    {% else %}
+                    <li class="list-group-item text-center text-muted py-4">No payments recorded</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row">
+    <div class="col-12">
+        <div class="card content-card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-lightning me-2"></i>Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 text-center mb-3">
+                        <a href="{{ url_for('finances_invoice_new') }}" class="btn btn-primary w-100">
+                            <i class="bi bi-receipt me-2"></i>New Invoice
+                        </a>
+                    </div>
+                    <div class="col-md-3 text-center mb-3">
+                        <a href="{{ url_for('finances_payment_new') }}" class="btn btn-success w-100">
+                            <i class="bi bi-cash me-2"></i>Record Payment
+                        </a>
+                    </div>
+                    <div class="col-md-3 text-center mb-3">
+                        <a href="{{ url_for('finances_expense_new') }}" class="btn btn-danger w-100">
+                            <i class="bi bi-wallet2 me-2"></i>Add Expense
+                        </a>
+                    </div>
+                    <div class="col-md-3 text-center mb-3">
+                        <a href="{{ url_for('reports_view_type', report_type='finances') }}" class="btn btn-info w-100">
+                            <i class="bi bi-file-text me-2"></i>Generate Report
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

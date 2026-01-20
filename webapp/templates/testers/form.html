@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'Edit' if tester else 'Add' }} Tester{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('testers_list') }}">Testers</a></li>
+                <li class="breadcrumb-item active">{{ 'Edit' if tester else 'Add' }} Tester</li>
+            </ol>
+        </nav>
+        <h1 class="h3">{{ 'Edit Tester' if tester else 'Add New Tester' }}</h1>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card form-card">
+            <div class="card-body">
+                <form action="{{ url_for('testers_edit', tester_id=tester.id) if tester else url_for('testers_create') }}" method="post" class="needs-validation" novalidate>
+
+                    <h5 class="mb-4"><i class="bi bi-person me-2"></i>Personal Information</h5>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="name" class="form-label">Full Name *</label>
+                            <input type="text" class="form-control" id="name" name="name"
+                                   value="{{ tester.name if tester else '' }}" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="email" class="form-label">Email *</label>
+                            <input type="email" class="form-control" id="email" name="email"
+                                   value="{{ tester.email if tester else '' }}" required>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="phone" class="form-label">Phone</label>
+                            <input type="tel" class="form-control" id="phone" name="phone"
+                                   value="{{ tester.phone if tester else '' }}">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="location" class="form-label">Location</label>
+                            <input type="text" class="form-control" id="location" name="location"
+                                   value="{{ tester.location if tester else '' }}" placeholder="City, Country">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="timezone" class="form-label">Timezone</label>
+                        <select class="form-select" id="timezone" name="timezone">
+                            <option value="">Select timezone...</option>
+                            <option value="America/New_York" {{ 'selected' if tester and tester.timezone == 'America/New_York' }}>Eastern Time (ET)</option>
+                            <option value="America/Chicago" {{ 'selected' if tester and tester.timezone == 'America/Chicago' }}>Central Time (CT)</option>
+                            <option value="America/Denver" {{ 'selected' if tester and tester.timezone == 'America/Denver' }}>Mountain Time (MT)</option>
+                            <option value="America/Los_Angeles" {{ 'selected' if tester and tester.timezone == 'America/Los_Angeles' }}>Pacific Time (PT)</option>
+                            <option value="Europe/London" {{ 'selected' if tester and tester.timezone == 'Europe/London' }}>GMT/UTC</option>
+                            <option value="Europe/Paris" {{ 'selected' if tester and tester.timezone == 'Europe/Paris' }}>Central European Time</option>
+                            <option value="Asia/Tokyo" {{ 'selected' if tester and tester.timezone == 'Asia/Tokyo' }}>Japan Standard Time</option>
+                            <option value="Australia/Sydney" {{ 'selected' if tester and tester.timezone == 'Australia/Sydney' }}>Australian Eastern Time</option>
+                        </select>
+                    </div>
+
+                    <hr class="my-4">
+                    <h5 class="mb-4"><i class="bi bi-phone me-2"></i>Devices</h5>
+
+                    <div class="mb-3">
+                        <label class="form-label">Available Devices *</label>
+                        <textarea class="form-control" id="devices" name="devices" rows="3"
+                                  placeholder="One device per line (e.g., iPhone 14 Pro, Samsung Galaxy S23)">{% if tester and tester.devices %}{% for d in tester.devices %}{{ d }}
+{% endfor %}{% endif %}</textarea>
+                        <div class="form-text">List each device on a separate line.</div>
+                    </div>
+
+                    <hr class="my-4">
+                    <h5 class="mb-4"><i class="bi bi-star me-2"></i>Testing Profile</h5>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="experience_level" class="form-label">Experience Level</label>
+                            <select class="form-select" id="experience_level" name="experience_level">
+                                <option value="">Select...</option>
+                                <option value="Beginner" {{ 'selected' if tester and tester.experience_level == 'Beginner' }}>Beginner</option>
+                                <option value="Intermediate" {{ 'selected' if tester and tester.experience_level == 'Intermediate' }}>Intermediate</option>
+                                <option value="Advanced" {{ 'selected' if tester and tester.experience_level == 'Advanced' }}>Advanced</option>
+                                <option value="Expert" {{ 'selected' if tester and tester.experience_level == 'Expert' }}>Expert</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="hours_per_week" class="form-label">Available Hours/Week</label>
+                            <input type="number" class="form-control" id="hours_per_week" name="hours_per_week"
+                                   value="{{ tester.hours_per_week if tester else '' }}" min="1" max="40">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="skills" class="form-label">Testing Skills</label>
+                        <textarea class="form-control" id="skills" name="skills" rows="2"
+                                  placeholder="One skill per line (e.g., Accessibility Testing, Performance Testing)">{% if tester and tester.skills %}{% for s in tester.skills %}{{ s }}
+{% endfor %}{% endif %}</textarea>
+                    </div>
+
+                    <hr class="my-4">
+                    <h5 class="mb-4"><i class="bi bi-credit-card me-2"></i>Payment</h5>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="payment_method" class="form-label">Preferred Payment Method</label>
+                            <select class="form-select" id="payment_method" name="payment_method">
+                                <option value="">Select...</option>
+                                <option value="PayPal" {{ 'selected' if tester and tester.payment_method == 'PayPal' }}>PayPal</option>
+                                <option value="Bank Transfer" {{ 'selected' if tester and tester.payment_method == 'Bank Transfer' }}>Bank Transfer</option>
+                                <option value="Venmo" {{ 'selected' if tester and tester.payment_method == 'Venmo' }}>Venmo</option>
+                                <option value="Check" {{ 'selected' if tester and tester.payment_method == 'Check' }}>Check</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="payment_details" class="form-label">Payment Details</label>
+                            <input type="text" class="form-control" id="payment_details" name="payment_details"
+                                   value="{{ tester.payment_details if tester else '' }}" placeholder="PayPal email, account number, etc.">
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('testers_list') }}" class="btn btn-outline-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle me-1"></i>{{ 'Update' if tester else 'Add' }} Tester
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card content-card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i>Tester Program</h5>
+            </div>
+            <div class="card-body">
+                <h6>Payment Rates</h6>
+                <table class="table table-sm small">
+                    <tr>
+                        <td>Basic testing</td>
+                        <td>$25-50/app</td>
+                    </tr>
+                    <tr>
+                        <td>Bug hunting</td>
+                        <td>$50-100/app</td>
+                    </tr>
+                    <tr>
+                        <td>UX feedback</td>
+                        <td>$30/hour</td>
+                    </tr>
+                </table>
+
+                <h6 class="mt-3">Requirements</h6>
+                <ul class="small mb-0">
+                    <li>Complete testing within 14 days</li>
+                    <li>Submit detailed bug reports</li>
+                    <li>Respond to follow-up questions</li>
+                    <li>Maintain confidentiality</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

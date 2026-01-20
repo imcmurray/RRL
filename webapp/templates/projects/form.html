@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'Edit' if project else 'New' }} Project{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('projects_list') }}">Projects</a></li>
+                <li class="breadcrumb-item active">{{ 'Edit' if project else 'New' }} Project</li>
+            </ol>
+        </nav>
+        <h1 class="h3">{{ 'Edit Project' if project else 'Create New Project' }}</h1>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card form-card">
+            <div class="card-body">
+                <form action="{{ url_for('projects_edit', project_id=project.id) if project else url_for('projects_create') }}" method="post" class="needs-validation" novalidate>
+
+                    <h5 class="mb-4"><i class="bi bi-folder me-2"></i>Project Details</h5>
+
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Project Name *</label>
+                        <input type="text" class="form-control" id="name" name="name"
+                               value="{{ project.name if project else idea.name if idea else '' }}" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea class="form-control" id="description" name="description" rows="4">{{ project.description if project else idea.description if idea else '' }}</textarea>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="client_id" class="form-label">Client</label>
+                            <select class="form-select" id="client_id" name="client_id">
+                                <option value="">Internal Project</option>
+                                {% for client in clients %}
+                                <option value="{{ client.id }}" {% if (project and project.client_id == client.id) or (request.args.get('client_id') == client.id) %}selected{% endif %}>
+                                    {{ client.company_name or client.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="status" class="form-label">Status</label>
+                            <select class="form-select" id="status" name="status">
+                                <option value="planning" {% if project and project.status == 'planning' %}selected{% endif %}>Planning</option>
+                                <option value="design" {% if project and project.status == 'design' %}selected{% endif %}>Design</option>
+                                <option value="development" {% if project and project.status == 'development' %}selected{% endif %}>Development</option>
+                                <option value="testing" {% if project and project.status == 'testing' %}selected{% endif %}>Testing</option>
+                                <option value="launched" {% if project and project.status == 'launched' %}selected{% endif %}>Launched</option>
+                                <option value="maintenance" {% if project and project.status == 'maintenance' %}selected{% endif %}>Maintenance</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Platforms</label>
+                        <div>
+                            {% set platforms = project.platforms if project else idea.platforms if idea else [] %}
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="checkbox" name="platforms" value="iOS"
+                                       id="platform-ios" {{ 'checked' if 'iOS' in platforms }}>
+                                <label class="form-check-label" for="platform-ios">iOS</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="checkbox" name="platforms" value="Android"
+                                       id="platform-android" {{ 'checked' if 'Android' in platforms }}>
+                                <label class="form-check-label" for="platform-android">Android</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="checkbox" name="platforms" value="Web"
+                                       id="platform-web" {{ 'checked' if 'Web' in platforms }}>
+                                <label class="form-check-label" for="platform-web">Web</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+                    <h5 class="mb-4"><i class="bi bi-calendar me-2"></i>Timeline</h5>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="start_date" class="form-label">Start Date</label>
+                            <input type="date" class="form-control" id="start_date" name="start_date"
+                                   value="{{ project.start_date if project else '' }}">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="target_date" class="form-label">Target Launch Date</label>
+                            <input type="date" class="form-control" id="target_date" name="target_date"
+                                   value="{{ project.target_date if project else '' }}">
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+                    <h5 class="mb-4"><i class="bi bi-currency-dollar me-2"></i>Budget & Pricing</h5>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="budget" class="form-label">Internal Budget ($)</label>
+                            <input type="number" class="form-control" id="budget" name="budget"
+                                   value="{{ project.budget if project else idea.budget if idea else '' }}" min="0" step="100">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="value" class="form-label">Contract Value ($)</label>
+                            <input type="number" class="form-control" id="value" name="value"
+                                   value="{{ project.value if project else '' }}" min="0" step="100">
+                        </div>
+                    </div>
+
+                    {% if idea %}
+                    <input type="hidden" name="idea_id" value="{{ idea.id }}">
+                    {% endif %}
+
+                    <hr class="my-4">
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('projects_list') }}" class="btn btn-outline-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle me-1"></i>{{ 'Update' if project else 'Create' }} Project
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        {% if idea %}
+        <div class="card content-card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-lightbulb me-2"></i>Source Idea</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>{{ idea.name }}</strong></p>
+                <p class="small text-muted">{{ idea.description[:150] }}{% if idea.description|length > 150 %}...{% endif %}</p>
+                <a href="{{ url_for('ideas_detail', idea_id=idea.id) }}" class="btn btn-sm btn-outline-primary">View Full Idea</a>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="card content-card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i>Project Workflow</h5>
+            </div>
+            <div class="card-body">
+                <ol class="small mb-0">
+                    <li><strong>Planning</strong> - Define scope and requirements</li>
+                    <li><strong>Design</strong> - Create UI/UX designs</li>
+                    <li><strong>Development</strong> - Build the application</li>
+                    <li><strong>Testing</strong> - QA and beta testing</li>
+                    <li><strong>Launched</strong> - Live in app stores</li>
+                    <li><strong>Maintenance</strong> - Ongoing support</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

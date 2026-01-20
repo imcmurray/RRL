@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+
+{% block title %}Generate Report{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('reports_list') }}">Reports</a></li>
+                <li class="breadcrumb-item active">Generate Report</li>
+            </ol>
+        </nav>
+        <h1 class="h3">Generate Report</h1>
+        <p class="text-muted">Create a new business report</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card form-card">
+            <div class="card-body">
+                <form action="{{ url_for('reports_create') }}" method="post">
+
+                    <h5 class="mb-4"><i class="bi bi-file-earmark-bar-graph me-2"></i>Report Configuration</h5>
+
+                    <div class="mb-4">
+                        <label class="form-label">Report Type *</label>
+                        <div class="row">
+                            <div class="col-md-6 mb-2">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="report_type" id="type-ideas" value="ideas" checked>
+                                    <label class="form-check-label" for="type-ideas">
+                                        <strong>Ideas Pipeline</strong>
+                                        <br><small class="text-muted">Summary of submitted ideas and review status</small>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="report_type" id="type-testers" value="testers">
+                                    <label class="form-check-label" for="type-testers">
+                                        <strong>Tester Program</strong>
+                                        <br><small class="text-muted">Beta tester statistics and engagement</small>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="report_type" id="type-projects" value="projects">
+                                    <label class="form-check-label" for="type-projects">
+                                        <strong>Projects Status</strong>
+                                        <br><small class="text-muted">Active projects and milestone tracking</small>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="report_type" id="type-finances" value="finances">
+                                    <label class="form-check-label" for="type-finances">
+                                        <strong>Financial Summary</strong>
+                                        <br><small class="text-muted">Revenue, invoices, and expenses</small>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="report_type" id="type-client" value="client">
+                                    <label class="form-check-label" for="type-client">
+                                        <strong>Client Report</strong>
+                                        <br><small class="text-muted">Detailed report for a specific client</small>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="report_type" id="type-comprehensive" value="comprehensive">
+                                    <label class="form-check-label" for="type-comprehensive">
+                                        <strong>Comprehensive</strong>
+                                        <br><small class="text-muted">Full company overview report</small>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3" id="clientSelect" style="display:none;">
+                        <label for="client_id" class="form-label">Select Client</label>
+                        <select class="form-select" id="client_id" name="client_id">
+                            <option value="">Choose a client...</option>
+                            {% for client in clients %}
+                            <option value="{{ client.id }}">{{ client.company_name or client.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Report Title</label>
+                        <input type="text" class="form-control" id="title" name="title"
+                               placeholder="Auto-generated if blank">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="notes" class="form-label">Additional Notes</label>
+                        <textarea class="form-control" id="notes" name="notes" rows="2"
+                                  placeholder="Any additional context for the report"></textarea>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('reports_list') }}" class="btn btn-outline-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-file-earmark-bar-graph me-1"></i>Generate Report
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card content-card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i>About Reports</h5>
+            </div>
+            <div class="card-body small">
+                <p>Reports are generated in Markdown format and can be:</p>
+                <ul>
+                    <li>Viewed in the dashboard</li>
+                    <li>Copied for sharing</li>
+                    <li>Used as context for AI agent meetings</li>
+                    <li>Exported for external use</li>
+                </ul>
+                <p class="mb-0">Reports aggregate data from the respective stores and provide insights for decision making.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.querySelectorAll('input[name="report_type"]').forEach(function(radio) {
+    radio.addEventListener('change', function() {
+        document.getElementById('clientSelect').style.display =
+            this.value === 'client' ? 'block' : 'none';
+    });
+});
+</script>
+{% endblock %}

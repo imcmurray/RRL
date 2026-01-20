@@ -1,0 +1,223 @@
+{% extends "base.html" %}
+
+{% block title %}{{ tester.name }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('testers_list') }}">Testers</a></li>
+                <li class="breadcrumb-item active">{{ tester.name }}</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="detail-header">
+    <div class="row align-items-center">
+        <div class="col-md-8">
+            <h1>{{ tester.name }}</h1>
+            <span class="badge badge-status badge-{{ tester.status }} me-2">{{ tester.status | title }}</span>
+            <span class="text-muted">Member since {{ tester.created_at | datetime }}</span>
+        </div>
+        <div class="col-md-4 text-end">
+            <div class="btn-group">
+                <a href="{{ url_for('testers_edit', tester_id=tester.id) }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-pencil me-1"></i>Edit
+                </a>
+                <a href="mailto:{{ tester.email }}" class="btn btn-primary">
+                    <i class="bi bi-envelope me-1"></i>Email
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <!-- Devices & Skills -->
+        <div class="detail-section">
+            <h5><i class="bi bi-phone me-2"></i>Devices & Skills</h5>
+            <div class="row">
+                <div class="col-md-6">
+                    <h6>Devices</h6>
+                    {% if tester.devices %}
+                        {% for device in tester.devices %}
+                        <span class="badge bg-secondary me-1 mb-1">{{ device }}</span>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted">No devices listed</p>
+                    {% endif %}
+                </div>
+                <div class="col-md-6">
+                    <h6>Skills</h6>
+                    {% if tester.skills %}
+                        {% for skill in tester.skills %}
+                        <span class="badge bg-info me-1 mb-1">{{ skill }}</span>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted">No skills listed</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Testing History -->
+        <div class="detail-section">
+            <h5><i class="bi bi-clipboard-check me-2"></i>Testing History</h5>
+            {% if tester.testing_history %}
+            <div class="table-responsive">
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Project</th>
+                            <th>Date</th>
+                            <th>Bugs Found</th>
+                            <th>Rating</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for history in tester.testing_history %}
+                        <tr>
+                            <td>{{ history.project_name }}</td>
+                            <td>{{ history.date | datetime }}</td>
+                            <td>{{ history.bugs_found or 0 }}</td>
+                            <td>
+                                {% if history.rating %}
+                                    {% for i in range(history.rating) %}
+                                    <i class="bi bi-star-fill text-warning"></i>
+                                    {% endfor %}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+                <p class="text-muted">No testing history yet.</p>
+            {% endif %}
+        </div>
+
+        <!-- Notes -->
+        <div class="detail-section">
+            <h5><i class="bi bi-sticky me-2"></i>Notes</h5>
+            <div class="notes-list">
+                {% if tester.notes %}
+                    {% for note in tester.notes | reverse %}
+                    <div class="note-item">
+                        <p class="mb-1">{{ note.content }}</p>
+                        <div class="note-meta">
+                            {{ note.author }} - {{ note.timestamp | datetime }}
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted">No notes yet.</p>
+                {% endif %}
+            </div>
+            <form action="{{ url_for('testers_add_note', tester_id=tester.id) }}" method="post" class="mt-3">
+                <div class="input-group">
+                    <input type="text" name="note" class="form-control" placeholder="Add a note..." required>
+                    <input type="hidden" name="author" value="Dashboard User">
+                    <button type="submit" class="btn btn-outline-primary">Add Note</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <!-- Contact Info -->
+        <div class="detail-section">
+            <h5><i class="bi bi-person me-2"></i>Contact Info</h5>
+            <table class="table table-sm">
+                <tr>
+                    <td class="text-muted">Email</td>
+                    <td><a href="mailto:{{ tester.email }}">{{ tester.email }}</a></td>
+                </tr>
+                <tr>
+                    <td class="text-muted">Phone</td>
+                    <td>{{ tester.phone or '-' }}</td>
+                </tr>
+                <tr>
+                    <td class="text-muted">Location</td>
+                    <td>{{ tester.location or '-' }}</td>
+                </tr>
+                <tr>
+                    <td class="text-muted">Timezone</td>
+                    <td>{{ tester.timezone or '-' }}</td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Testing Profile -->
+        <div class="detail-section">
+            <h5><i class="bi bi-bar-chart me-2"></i>Profile</h5>
+            <table class="table table-sm">
+                <tr>
+                    <td class="text-muted">Experience</td>
+                    <td>{{ tester.experience_level or '-' }}</td>
+                </tr>
+                <tr>
+                    <td class="text-muted">Availability</td>
+                    <td>{{ tester.hours_per_week or '-' }} hrs/week</td>
+                </tr>
+                <tr>
+                    <td class="text-muted">Payment Method</td>
+                    <td>{{ tester.payment_method or '-' }}</td>
+                </tr>
+                <tr>
+                    <td class="text-muted">Tests Completed</td>
+                    <td>{{ tester.tests_completed or 0 }}</td>
+                </tr>
+                <tr>
+                    <td class="text-muted">Total Earnings</td>
+                    <td>{{ tester.total_earnings | currency if tester.total_earnings else '$0.00' }}</td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="detail-section">
+            <h5><i class="bi bi-lightning me-2"></i>Quick Actions</h5>
+            <div class="d-grid gap-2">
+                {% if tester.status == 'pending' %}
+                <form action="{{ url_for('testers_update_status', tester_id=tester.id) }}" method="post">
+                    <input type="hidden" name="status" value="active">
+                    <button type="submit" class="btn btn-success w-100">
+                        <i class="bi bi-check-circle me-1"></i>Approve Tester
+                    </button>
+                </form>
+                {% endif %}
+                {% if tester.status == 'active' %}
+                <a href="{{ url_for('testers_assign', tester_id=tester.id) }}" class="btn btn-primary">
+                    <i class="bi bi-briefcase me-1"></i>Assign to Project
+                </a>
+                <form action="{{ url_for('testers_update_status', tester_id=tester.id) }}" method="post">
+                    <input type="hidden" name="status" value="inactive">
+                    <button type="submit" class="btn btn-warning w-100">
+                        <i class="bi bi-pause-circle me-1"></i>Set Inactive
+                    </button>
+                </form>
+                {% endif %}
+                {% if tester.status == 'inactive' %}
+                <form action="{{ url_for('testers_update_status', tester_id=tester.id) }}" method="post">
+                    <input type="hidden" name="status" value="active">
+                    <button type="submit" class="btn btn-success w-100">
+                        <i class="bi bi-play-circle me-1"></i>Reactivate
+                    </button>
+                </form>
+                {% endif %}
+                <form action="{{ url_for('testers_delete', tester_id=tester.id) }}" method="post">
+                    <button type="submit" class="btn btn-outline-danger w-100" data-confirm-delete>
+                        <i class="bi bi-trash me-1"></i>Remove Tester
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

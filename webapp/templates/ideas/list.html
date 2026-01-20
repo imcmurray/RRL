@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+
+{% block title %}Ideas{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-6">
+        <h1 class="h3">App Ideas</h1>
+        <p class="text-muted">Manage submitted app ideas and proposals</p>
+    </div>
+    <div class="col-md-6 text-end">
+        <a href="{{ url_for('ideas_new') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle me-1"></i>Submit New Idea
+        </a>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="card content-card mb-4">
+    <div class="card-body">
+        <div class="row align-items-center">
+            <div class="col-md-4 mb-2 mb-md-0">
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input type="text" class="form-control" id="searchInput" placeholder="Search ideas...">
+                </div>
+            </div>
+            <div class="col-md-3 mb-2 mb-md-0">
+                <select class="form-select" id="statusFilter">
+                    <option value="">All Statuses</option>
+                    <option value="submitted" {% if current_status == 'submitted' %}selected{% endif %}>Submitted</option>
+                    <option value="under_review" {% if current_status == 'under_review' %}selected{% endif %}>Under Review</option>
+                    <option value="approved" {% if current_status == 'approved' %}selected{% endif %}>Approved</option>
+                    <option value="declined" {% if current_status == 'declined' %}selected{% endif %}>Declined</option>
+                    <option value="in_development" {% if current_status == 'in_development' %}selected{% endif %}>In Development</option>
+                    <option value="completed" {% if current_status == 'completed' %}selected{% endif %}>Completed</option>
+                </select>
+            </div>
+            <div class="col-md-5 text-end">
+                <span class="text-muted">{{ ideas | length }} idea(s) found</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Ideas Table -->
+<div class="table-container">
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Submitter</th>
+                <th>Platforms</th>
+                <th>Status</th>
+                <th>Submitted</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for idea in ideas %}
+            <tr>
+                <td>
+                    <a href="{{ url_for('ideas_detail', idea_id=idea.id) }}" class="fw-semibold">{{ idea.name }}</a>
+                    {% if idea.description %}
+                    <br><small class="text-muted">{{ idea.description[:60] }}{% if idea.description|length > 60 %}...{% endif %}</small>
+                    {% endif %}
+                </td>
+                <td>
+                    {{ idea.submitter_name or 'Anonymous' }}
+                    {% if idea.submitter_email %}
+                    <br><small class="text-muted">{{ idea.submitter_email }}</small>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if idea.platforms %}
+                        {% for platform in idea.platforms %}
+                        <span class="badge bg-secondary me-1">{{ platform }}</span>
+                        {% endfor %}
+                    {% else %}
+                        <span class="text-muted">-</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <span class="badge badge-status badge-{{ idea.status }}">{{ idea.status | replace('_', ' ') | title }}</span>
+                </td>
+                <td>{{ idea.created_at | datetime }}</td>
+                <td>
+                    <div class="btn-group btn-group-sm">
+                        <a href="{{ url_for('ideas_detail', idea_id=idea.id) }}" class="btn btn-outline-primary btn-action" title="View">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                        <a href="{{ url_for('ideas_edit', idea_id=idea.id) }}" class="btn btn-outline-secondary btn-action" title="Edit">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        {% if idea.status == 'submitted' %}
+                        <a href="{{ url_for('ideas_review', idea_id=idea.id) }}" class="btn btn-outline-info btn-action" title="Review">
+                            <i class="bi bi-clipboard-check"></i>
+                        </a>
+                        {% endif %}
+                    </div>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="6" class="text-center py-5">
+                    <i class="bi bi-lightbulb display-4 text-muted"></i>
+                    <p class="text-muted mt-2">No ideas found</p>
+                    <a href="{{ url_for('ideas_new') }}" class="btn btn-primary">Submit First Idea</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

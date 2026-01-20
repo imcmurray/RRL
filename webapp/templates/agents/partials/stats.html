@@ -1,0 +1,33 @@
+<!-- Agent Stats Partial (HTMX) -->
+<div class="col-md-3 col-6 mb-3">
+    <div class="card stats-card">
+        <div class="card-body finance-metric">
+            <div class="value text-primary">{{ request_stats.total }}</div>
+            <div class="label">Total Requests</div>
+        </div>
+    </div>
+</div>
+<div class="col-md-3 col-6 mb-3">
+    <div class="card stats-card">
+        <div class="card-body finance-metric">
+            <div class="value text-warning">{{ request_stats.pending }}</div>
+            <div class="label">Pending Review</div>
+        </div>
+    </div>
+</div>
+<div class="col-md-3 col-6 mb-3">
+    <div class="card stats-card">
+        <div class="card-body finance-metric">
+            <div class="value text-success">{{ request_stats.approved }}</div>
+            <div class="label">Approved</div>
+        </div>
+    </div>
+</div>
+<div class="col-md-3 col-6 mb-3">
+    <div class="card stats-card">
+        <div class="card-body finance-metric">
+            <div class="value text-info">{{ request_stats.implemented }}</div>
+            <div class="label">Implemented</div>
+        </div>
+    </div>
+</div>

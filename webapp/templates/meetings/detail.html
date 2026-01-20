@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+
+{% block title %}Meeting: {{ meeting.topic }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('meetings_list') }}">Meetings</a></li>
+                <li class="breadcrumb-item active">{{ meeting.topic }}</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="detail-header">
+    <div class="row align-items-center">
+        <div class="col-md-8">
+            <h1>{{ meeting.topic }}</h1>
+            <span class="badge bg-secondary me-2">{{ meeting.type | replace('_', ' ') | title }}</span>
+            <span class="text-muted">{{ meeting.date | datetime }}</span>
+        </div>
+        <div class="col-md-4 text-end">
+            <button class="btn btn-outline-secondary" onclick="copyToClipboard(document.getElementById('transcript').innerText)">
+                <i class="bi bi-clipboard me-1"></i>Copy Transcript
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <!-- Transcript -->
+        <div class="detail-section">
+            <h5><i class="bi bi-chat-left-text me-2"></i>Meeting Transcript</h5>
+            <div class="report-preview" id="transcript">
+                {% for entry in meeting.transcript %}
+                <div class="mb-3">
+                    <span class="agent-badge agent-{{ entry.agent | lower | replace(' ', '_') }}">{{ entry.agent }}</span>
+                    <p class="mt-2 mb-0">{{ entry.message }}</p>
+                </div>
+                {% else %}
+                <p class="text-muted">No transcript available.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Decisions -->
+        {% if meeting.decisions %}
+        <div class="detail-section">
+            <h5><i class="bi bi-check-circle me-2"></i>Decisions Made</h5>
+            {% for decision in meeting.decisions %}
+            <div class="decision-item {{ 'decision-pending' if not decision.finalized }}">
+                <strong>{{ decision.title }}</strong>
+                <p class="mb-1">{{ decision.description }}</p>
+                <small class="text-muted">
+                    {{ 'Approved' if decision.finalized else 'Pending' }} |
+                    {% if decision.owner %}Owner: {{ decision.owner }}{% endif %}
+                </small>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Action Items -->
+        {% if meeting.action_items %}
+        <div class="detail-section">
+            <h5><i class="bi bi-list-task me-2"></i>Action Items</h5>
+            <ul class="list-group">
+                {% for item in meeting.action_items %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                        <span class="badge bg-primary me-2">{{ item.owner }}</span>
+                        {{ item.task }}
+                    </div>
+                    {% if item.due_date %}
+                    <span class="badge bg-secondary">Due: {{ item.due_date }}</span>
+                    {% endif %}
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="col-lg-4">
+        <!-- Participants -->
+        <div class="detail-section">
+            <h5><i class="bi bi-people me-2"></i>Participants</h5>
+            <div class="d-flex flex-wrap gap-2">
+                {% for agent in meeting.participants %}
+                <span class="agent-badge agent-{{ agent | lower | replace(' ', '_') }}">{{ agent }}</span>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Meeting Info -->
+        <div class="detail-section">
+            <h5><i class="bi bi-info-circle me-2"></i>Meeting Info</h5>
+            <table class="table table-sm">
+                <tr>
+                    <td class="text-muted">Type</td>
+                    <td>{{ meeting.type | replace('_', ' ') | title }}</td>
+                </tr>
+                <tr>
+                    <td class="text-muted">Facilitator</td>
+                    <td>{{ meeting.facilitator or 'CEO' }}</td>
+                </tr>
+                <tr>
+                    <td class="text-muted">Duration</td>
+                    <td>{{ meeting.duration or 'N/A' }}</td>
+                </tr>
+                <tr>
+                    <td class="text-muted">Date</td>
+                    <td>{{ meeting.date | datetime }}</td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Related Items -->
+        {% if meeting.related_idea or meeting.related_project %}
+        <div class="detail-section">
+            <h5><i class="bi bi-link-45deg me-2"></i>Related</h5>
+            {% if meeting.related_idea %}
+            <a href="{{ url_for('ideas_detail', idea_id=meeting.related_idea.id) }}" class="btn btn-sm btn-outline-primary w-100 mb-2">
+                <i class="bi bi-lightbulb me-1"></i>{{ meeting.related_idea.name }}
+            </a>
+            {% endif %}
+            {% if meeting.related_project %}
+            <a href="{{ url_for('projects_detail', project_id=meeting.related_project.id) }}" class="btn btn-sm btn-outline-info w-100">
+                <i class="bi bi-kanban me-1"></i>{{ meeting.related_project.name }}
+            </a>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <!-- Actions -->
+        <div class="detail-section">
+            <h5><i class="bi bi-lightning me-2"></i>Actions</h5>
+            <div class="d-grid gap-2">
+                <button class="btn btn-outline-primary btn-sm" onclick="runMeeting('{{ meeting.type }}', 'Follow-up: {{ meeting.topic }}')">
+                    <i class="bi bi-arrow-repeat me-1"></i>Continue Discussion
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

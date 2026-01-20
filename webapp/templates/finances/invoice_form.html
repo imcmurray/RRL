@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'Edit' if invoice else 'New' }} Invoice{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('finances_dashboard') }}">Finances</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('finances_invoices') }}">Invoices</a></li>
+                <li class="breadcrumb-item active">{{ 'Edit' if invoice else 'New' }} Invoice</li>
+            </ol>
+        </nav>
+        <h1 class="h3">{{ 'Edit Invoice' if invoice else 'Create New Invoice' }}</h1>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card form-card">
+            <div class="card-body">
+                <form action="{{ url_for('finances_invoice_edit', invoice_id=invoice.id) if invoice else url_for('finances_invoice_create') }}" method="post" class="needs-validation" novalidate>
+
+                    <h5 class="mb-4"><i class="bi bi-receipt me-2"></i>Invoice Details</h5>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="invoice_number" class="form-label">Invoice Number</label>
+                            <input type="text" class="form-control" id="invoice_number" name="invoice_number"
+                                   value="{{ invoice.invoice_number if invoice else '' }}" placeholder="Auto-generated if blank">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="status" class="form-label">Status</label>
+                            <select class="form-select" id="status" name="status">
+                                <option value="draft" {% if invoice and invoice.status == 'draft' %}selected{% endif %}>Draft</option>
+                                <option value="sent" {% if invoice and invoice.status == 'sent' %}selected{% endif %}>Sent</option>
+                                <option value="paid" {% if invoice and invoice.status == 'paid' %}selected{% endif %}>Paid</option>
+                                <option value="overdue" {% if invoice and invoice.status == 'overdue' %}selected{% endif %}>Overdue</option>
+                                <option value="cancelled" {% if invoice and invoice.status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="client_id" class="form-label">Client *</label>
+                            <select class="form-select" id="client_id" name="client_id" required>
+                                <option value="">Select Client...</option>
+                                {% for client in clients %}
+                                <option value="{{ client.id }}" {% if (invoice and invoice.client_id == client.id) or request.args.get('client_id') == client.id %}selected{% endif %}>
+                                    {{ client.company_name or client.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="project_id" class="form-label">Project</label>
+                            <select class="form-select" id="project_id" name="project_id">
+                                <option value="">No specific project</option>
+                                {% for project in projects %}
+                                <option value="{{ project.id }}" {% if (invoice and invoice.project_id == project.id) or request.args.get('project_id') == project.id %}selected{% endif %}>
+                                    {{ project.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+                    <h5 class="mb-4"><i class="bi bi-currency-dollar me-2"></i>Amount & Dates</h5>
+
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label for="amount" class="form-label">Amount ($) *</label>
+                            <input type="number" class="form-control" id="amount" name="amount"
+                                   value="{{ invoice.amount if invoice else '' }}" min="0" step="0.01" required>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="issue_date" class="form-label">Issue Date</label>
+                            <input type="date" class="form-control" id="issue_date" name="issue_date"
+                                   value="{{ invoice.issue_date if invoice else '' }}">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="due_date" class="form-label">Due Date</label>
+                            <input type="date" class="form-control" id="due_date" name="due_date"
+                                   value="{{ invoice.due_date if invoice else '' }}">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea class="form-control" id="description" name="description" rows="3"
+                                  placeholder="Invoice line items or description">{{ invoice.description if invoice else '' }}</textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="notes" class="form-label">Internal Notes</label>
+                        <textarea class="form-control" id="notes" name="notes" rows="2"
+                                  placeholder="Notes for internal use only">{{ invoice.internal_notes if invoice else '' }}</textarea>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('finances_invoices') }}" class="btn btn-outline-secondary">Cancel</a>
+                        <div>
+                            <button type="submit" name="action" value="save" class="btn btn-secondary me-2">
+                                <i class="bi bi-save me-1"></i>Save Draft
+                            </button>
+                            <button type="submit" name="action" value="send" class="btn btn-primary">
+                                <i class="bi bi-send me-1"></i>Save & Send
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card content-card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i>Invoice Tips</h5>
+            </div>
+            <div class="card-body small">
+                <ul class="mb-0">
+                    <li>Invoice numbers are auto-generated if left blank</li>
+                    <li>Set clear due dates (typically 30 days)</li>
+                    <li>Include detailed descriptions for clarity</li>
+                    <li>Review before sending to clients</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,21 @@
+<!-- Agent Activity Partial (HTMX) -->
+{% if recent_activity %}
+<ul class="list-unstyled mb-0">
+    {% for activity in recent_activity %}
+    <li class="mb-2 pb-2 border-bottom">
+        <a href="{{ url_for('agent_request_detail', request_id=activity.id) }}" class="text-decoration-none">
+            <strong>{{ activity.title }}</strong>
+        </a>
+        <br>
+        <small class="text-muted">
+            <span class="badge bg-{{ 'warning' if activity.status == 'submitted' else 'info' if activity.status == 'under_review' else 'success' if activity.status in ['approved', 'implemented'] else 'danger' if activity.status == 'rejected' else 'secondary' }}">
+                {{ activity.status | replace('_', ' ') | title }}
+            </span>
+            {{ activity.created_at | datetime }}
+        </small>
+    </li>
+    {% endfor %}
+</ul>
+{% else %}
+<p class="text-muted mb-0">No recent activity</p>
+{% endif %}

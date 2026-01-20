@@ -1,0 +1,37 @@
+<!-- Dashboard Stats Partial (HTMX) -->
+<div class="col-md-3 col-6">
+    <div class="card stats-card">
+        <div class="card-body">
+            <h6 class="text-muted mb-2">Ideas</h6>
+            <h3 class="mb-0">{{ ideas_count }}</h3>
+            <small class="text-warning">{{ ideas_pending }} pending</small>
+        </div>
+    </div>
+</div>
+<div class="col-md-3 col-6">
+    <div class="card stats-card">
+        <div class="card-body">
+            <h6 class="text-muted mb-2">Testers</h6>
+            <h3 class="mb-0">{{ testers_count }}</h3>
+            <small class="text-success">{{ testers_active }} active</small>
+        </div>
+    </div>
+</div>
+<div class="col-md-3 col-6">
+    <div class="card stats-card">
+        <div class="card-body">
+            <h6 class="text-muted mb-2">Projects</h6>
+            <h3 class="mb-0">{{ projects_count }}</h3>
+            <small class="text-primary">{{ projects_active }} active</small>
+        </div>
+    </div>
+</div>
+<div class="col-md-3 col-6">
+    <div class="card stats-card">
+        <div class="card-body">
+            <h6 class="text-muted mb-2">Outstanding</h6>
+            <h3 class="mb-0">{{ outstanding | currency }}</h3>
+            <small class="text-info">invoices</small>
+        </div>
+    </div>
+</div>

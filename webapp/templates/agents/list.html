@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+
+{% block title %}Agent Portals{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h1 class="h3">Agent Portals</h1>
+        <p class="text-muted">Access individual agent workspaces and manage feature requests</p>
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="{{ url_for('agent_requests_all') }}" class="btn btn-outline-primary">
+            <i class="bi bi-list-ul me-1"></i>All Requests
+        </a>
+        <a href="{{ url_for('agent_requests_pending') }}" class="btn btn-primary">
+            <i class="bi bi-hourglass me-1"></i>Pending Review ({{ pending_count }})
+        </a>
+    </div>
+</div>
+
+<!-- Executive Team -->
+<div class="row mb-4">
+    <div class="col-12">
+        <h5 class="text-muted mb-3"><i class="bi bi-briefcase me-2"></i>Executive Team</h5>
+    </div>
+    {% for agent in executive_team %}
+    <div class="col-lg-4 col-md-6 mb-3">
+        <div class="card content-card h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-3">
+                    <span class="agent-badge agent-{{ agent.id }} me-2">{{ agent.role }}</span>
+                    <h5 class="mb-0">{{ agent.name }}</h5>
+                </div>
+                <p class="text-muted small mb-3">{{ agent.description }}</p>
+                <div class="d-flex justify-content-between align-items-center">
+                    <small class="text-muted">
+                        <span class="badge bg-info">{{ agent.request_count }} requests</span>
+                    </small>
+                    <a href="{{ url_for('agent_portal', agent_id=agent.id) }}" class="btn btn-sm btn-outline-primary">
+                        Enter Portal <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Product & Engineering Team -->
+<div class="row mb-4">
+    <div class="col-12">
+        <h5 class="text-muted mb-3"><i class="bi bi-code-slash me-2"></i>Product & Engineering</h5>
+    </div>
+    {% for agent in technical_team %}
+    <div class="col-lg-4 col-md-6 mb-3">
+        <div class="card content-card h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-3">
+                    <span class="agent-badge agent-{{ agent.id }} me-2">{{ agent.role }}</span>
+                    <h5 class="mb-0">{{ agent.name }}</h5>
+                </div>
+                <p class="text-muted small mb-3">{{ agent.description }}</p>
+                <div class="d-flex justify-content-between align-items-center">
+                    <small class="text-muted">
+                        <span class="badge bg-info">{{ agent.request_count }} requests</span>
+                    </small>
+                    <a href="{{ url_for('agent_portal', agent_id=agent.id) }}" class="btn btn-sm btn-outline-primary">
+                        Enter Portal <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Operations Team -->
+<div class="row mb-4">
+    <div class="col-12">
+        <h5 class="text-muted mb-3"><i class="bi bi-gear me-2"></i>Operations</h5>
+    </div>
+    {% for agent in operations_team %}
+    <div class="col-lg-4 col-md-6 mb-3">
+        <div class="card content-card h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-3">
+                    <span class="agent-badge agent-{{ agent.id }} me-2">{{ agent.role }}</span>
+                    <h5 class="mb-0">{{ agent.name }}</h5>
+                </div>
+                <p class="text-muted small mb-3">{{ agent.description }}</p>
+                <div class="d-flex justify-content-between align-items-center">
+                    <small class="text-muted">
+                        <span class="badge bg-info">{{ agent.request_count }} requests</span>
+                    </small>
+                    <a href="{{ url_for('agent_portal', agent_id=agent.id) }}" class="btn btn-sm btn-outline-primary">
+                        Enter Portal <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Request Statistics -->
+<div class="row">
+    <div class="col-12">
+        <div class="card content-card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-bar-chart me-2"></i>Request Overview</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-2 col-4 mb-3">
+                        <h3 class="text-secondary">{{ stats.total }}</h3>
+                        <small class="text-muted">Total</small>
+                    </div>
+                    <div class="col-md-2 col-4 mb-3">
+                        <h3 class="text-warning">{{ stats.submitted }}</h3>
+                        <small class="text-muted">Submitted</small>
+                    </div>
+                    <div class="col-md-2 col-4 mb-3">
+                        <h3 class="text-info">{{ stats.under_review }}</h3>
+                        <small class="text-muted">Under Review</small>
+                    </div>
+                    <div class="col-md-2 col-4 mb-3">
+                        <h3 class="text-success">{{ stats.approved }}</h3>
+                        <small class="text-muted">Approved</small>
+                    </div>
+                    <div class="col-md-2 col-4 mb-3">
+                        <h3 class="text-primary">{{ stats.implemented }}</h3>
+                        <small class="text-muted">Implemented</small>
+                    </div>
+                    <div class="col-md-2 col-4 mb-3">
+                        <h3 class="text-danger">{{ stats.rejected }}</h3>
+                        <small class="text-muted">Rejected</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

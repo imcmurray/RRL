@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+
+{% block title %}Invoice {{ invoice.invoice_number }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('finances_dashboard') }}">Finances</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('finances_invoices') }}">Invoices</a></li>
+                <li class="breadcrumb-item active">{{ invoice.invoice_number }}</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="detail-header">
+    <div class="row align-items-center">
+        <div class="col-md-8">
+            <h1>Invoice {{ invoice.invoice_number or invoice.id[:8] }}</h1>
+            <span class="badge badge-status badge-{{ invoice.status }} me-2">{{ invoice.status | title }}</span>
+            <span class="text-muted">Created {{ invoice.created_at | datetime }}</span>
+        </div>
+        <div class="col-md-4 text-end">
+            {% if invoice.status == 'draft' %}
+            <a href="{{ url_for('finances_invoice_edit', invoice_id=invoice.id) }}" class="btn btn-outline-secondary">
+                <i class="bi bi-pencil me-1"></i>Edit
+            </a>
+            <form action="{{ url_for('finances_send_invoice', invoice_id=invoice.id) }}" method="post" class="d-inline">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-send me-1"></i>Send
+                </button>
+            </form>
+            {% elif invoice.status in ['sent', 'overdue'] %}
+            <form action="{{ url_for('finances_mark_paid', invoice_id=invoice.id) }}" method="post" class="d-inline">
+                <button type="submit" class="btn btn-success">
+                    <i class="bi bi-check-circle me-1"></i>Mark Paid
+                </button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <!-- Invoice Details -->
+        <div class="detail-section">
+            <h5><i class="bi bi-receipt me-2"></i>Invoice Details</h5>
+            <div class="row">
+                <div class="col-md-6">
+                    <table class="table table-sm">
+                        <tr>
+                            <td class="text-muted">Invoice Number</td>
+                            <td>{{ invoice.invoice_number or invoice.id[:8] }}</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Issue Date</td>
+                            <td>{{ invoice.issue_date | datetime if invoice.issue_date else invoice.created_at | datetime }}</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Due Date</td>
+                            <td>{{ invoice.due_date | datetime if invoice.due_date else 'Not set' }}</td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <table class="table table-sm">
+                        <tr>
+                            <td class="text-muted">Client</td>
+                            <td>{{ invoice.client_name or 'N/A' }}</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Project</td>
+                            <td>{{ invoice.project_name or 'N/A' }}</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Status</td>
+                            <td><span class="badge badge-status badge-{{ invoice.status }}">{{ invoice.status | title }}</span></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Amount -->
+        <div class="detail-section">
+            <h5><i class="bi bi-currency-dollar me-2"></i>Amount</h5>
+            <div class="display-4 text-primary">{{ invoice.amount | currency }}</div>
+            {% if invoice.description %}
+            <hr>
+            <p class="text-muted">{{ invoice.description }}</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <!-- Status -->
+        <div class="detail-section">
+            <h5><i class="bi bi-info-circle me-2"></i>Status History</h5>
+            <ul class="list-unstyled">
+                <li class="mb-2">
+                    <i class="bi bi-circle-fill text-success me-2" style="font-size:0.5rem;"></i>
+                    Created: {{ invoice.created_at | datetime }}
+                </li>
+                {% if invoice.sent_at %}
+                <li class="mb-2">
+                    <i class="bi bi-circle-fill text-info me-2" style="font-size:0.5rem;"></i>
+                    Sent: {{ invoice.sent_at | datetime }}
+                </li>
+                {% endif %}
+                {% if invoice.paid_at %}
+                <li class="mb-2">
+                    <i class="bi bi-circle-fill text-success me-2" style="font-size:0.5rem;"></i>
+                    Paid: {{ invoice.paid_at | datetime }}
+                </li>
+                {% endif %}
+            </ul>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="detail-section">
+            <h5><i class="bi bi-lightning me-2"></i>Quick Actions</h5>
+            <div class="d-grid gap-2">
+                <button class="btn btn-outline-secondary btn-sm" onclick="window.print()">
+                    <i class="bi bi-printer me-1"></i>Print Invoice
+                </button>
+                <a href="{{ url_for('finances_invoices') }}" class="btn btn-outline-primary btn-sm">
+                    <i class="bi bi-arrow-left me-1"></i>Back to Invoices
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

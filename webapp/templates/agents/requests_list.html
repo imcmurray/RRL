@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+
+{% block title %}All Agent Requests{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-6">
+        <h1 class="h3">All Feature Requests</h1>
+        <p class="text-muted">View and filter all agent feature requests</p>
+    </div>
+    <div class="col-md-6 text-end">
+        <a href="{{ url_for('agent_requests_pending') }}" class="btn btn-warning">
+            <i class="bi bi-hourglass me-1"></i>Pending Review
+        </a>
+        <a href="{{ url_for('agents_list') }}" class="btn btn-outline-primary">
+            <i class="bi bi-grid me-1"></i>Agent Portals
+        </a>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="card content-card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label">Filter by Status</label>
+                <select name="status" class="form-select" onchange="this.form.submit()">
+                    <option value="">All Statuses</option>
+                    <option value="submitted" {% if current_status == 'submitted' %}selected{% endif %}>Submitted</option>
+                    <option value="under_review" {% if current_status == 'under_review' %}selected{% endif %}>Under Review</option>
+                    <option value="approved" {% if current_status == 'approved' %}selected{% endif %}>Approved</option>
+                    <option value="rejected" {% if current_status == 'rejected' %}selected{% endif %}>Rejected</option>
+                    <option value="in_progress" {% if current_status == 'in_progress' %}selected{% endif %}>In Progress</option>
+                    <option value="implemented" {% if current_status == 'implemented' %}selected{% endif %}>Implemented</option>
+                    <option value="deferred" {% if current_status == 'deferred' %}selected{% endif %}>Deferred</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Filter by Agent</label>
+                <select name="agent" class="form-select" onchange="this.form.submit()">
+                    <option value="">All Agents</option>
+                    {% for agent_id, agent in agents.items() %}
+                    <option value="{{ agent_id }}" {% if current_agent == agent_id %}selected{% endif %}>{{ agent.role }} - {{ agent.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4 d-flex align-items-end">
+                {% if current_status or current_agent %}
+                <a href="{{ url_for('agent_requests_all') }}" class="btn btn-outline-secondary">Clear Filters</a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Requests Table -->
+<div class="card content-card">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-list-ul me-2"></i>Requests ({{ requests | length }})</h5>
+    </div>
+    <div class="card-body">
+        {% if requests %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Agent</th>
+                        <th>Title</th>
+                        <th>Type</th>
+                        <th>Priority</th>
+                        <th>Status</th>
+                        <th>Votes</th>
+                        <th>Created</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for req in requests %}
+                    <tr>
+                        <td>
+                            <a href="{{ url_for('agent_portal', agent_id=req.agent_id) }}">
+                                <span class="badge agent-badge agent-{{ req.agent_id }}">{{ req._agent.role or req.agent_id }}</span>
+                            </a>
+                        </td>
+                        <td>
+                            <a href="{{ url_for('agent_request_detail', request_id=req.id) }}">
+                                {{ req.title }}
+                            </a>
+                        </td>
+                        <td>
+                            <span class="badge bg-secondary">{{ req.request_type | title }}</span>
+                        </td>
+                        <td>
+                            <span class="badge bg-{{ 'danger' if req.priority == 'critical' else 'warning' if req.priority == 'high' else 'info' if req.priority == 'medium' else 'secondary' }}">
+                                {{ req.priority | title }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge bg-{{ 'warning' if req.status == 'submitted' else 'info' if req.status == 'under_review' else 'success' if req.status in ['approved', 'implemented'] else 'danger' if req.status == 'rejected' else 'secondary' }}">
+                                {{ req.status | replace('_', ' ') | title }}
+                            </span>
+                        </td>
+                        <td>
+                            {% set votes = req.votes | default({}) %}
+                            <span class="text-success" title="Support">+{{ votes.support | default([]) | length }}</span>
+                            /
+                            <span class="text-danger" title="Oppose">-{{ votes.oppose | default([]) | length }}</span>
+                        </td>
+                        <td>{{ req.created_at | date }}</td>
+                        <td>
+                            <a href="{{ url_for('agent_request_detail', request_id=req.id) }}" class="btn btn-sm btn-outline-primary">
+                                View
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="bi bi-inbox display-4 text-muted"></i>
+            <p class="text-muted mt-2">No requests found</p>
+            {% if current_status or current_agent %}
+            <a href="{{ url_for('agent_requests_all') }}" class="btn btn-outline-primary">Clear Filters</a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

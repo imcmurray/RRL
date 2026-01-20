@@ -1,0 +1,52 @@
+<!-- Agent Requests Table Partial (HTMX) -->
+{% if requests %}
+<div class="table-responsive">
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Type</th>
+                <th>Priority</th>
+                <th>Status</th>
+                <th>Created</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for req in requests %}
+            <tr>
+                <td>
+                    <a href="{{ url_for('agent_request_detail', request_id=req.id) }}">
+                        {{ req.title }}
+                    </a>
+                </td>
+                <td>
+                    <span class="badge bg-secondary">{{ req.request_type | title }}</span>
+                </td>
+                <td>
+                    <span class="badge bg-{{ 'danger' if req.priority == 'critical' else 'warning' if req.priority == 'high' else 'info' if req.priority == 'medium' else 'secondary' }}">
+                        {{ req.priority | title }}
+                    </span>
+                </td>
+                <td>
+                    <span class="badge bg-{{ 'warning' if req.status == 'submitted' else 'info' if req.status == 'under_review' else 'success' if req.status in ['approved', 'implemented'] else 'danger' if req.status == 'rejected' else 'secondary' }}">
+                        {{ req.status | replace('_', ' ') | title }}
+                    </span>
+                </td>
+                <td>{{ req.created_at | date }}</td>
+                <td>
+                    <a href="{{ url_for('agent_request_detail', request_id=req.id) }}" class="btn btn-sm btn-outline-primary">
+                        View
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="text-center py-5">
+    <i class="bi bi-lightbulb display-4 text-muted"></i>
+    <p class="text-muted mt-2">No feature requests yet</p>
+</div>
+{% endif %}
