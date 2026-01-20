@@ -1183,6 +1183,288 @@ class SettingsStore:
 
 
 # =============================================================================
+# AGENT DOCUMENTATION - Under the Hood
+# =============================================================================
+
+AGENT_DOCUMENTATION = {
+    "ceo": {
+        "how_it_works": """The CEO agent serves as the strategic leader of your AI team. When you engage in meetings, the CEO:
+
+1. **Processes Context** - Reviews company.md, active projects, and recent decisions before responding
+2. **Maintains Vision** - Keeps responses aligned with company goals and values
+3. **Delegates Appropriately** - Knows when to involve other agents or defer to specialists
+4. **Tracks Decisions** - All major decisions are logged to decisions/decisions.json""",
+        "collaboration": {
+            "reports_to": "Architect (You)",
+            "direct_reports": ["CFO", "CITO", "Sales", "Legal", "PM", "Marketing"],
+            "collaborates_with": ["All agents for strategic alignment"],
+        },
+        "meeting_types": ["ceo-sync", "exec-meeting", "all-hands", "strategy"],
+        "data_access": ["All company data", "Financial summaries", "Project status", "Client relationships"],
+    },
+    "cfo": {
+        "how_it_works": """The CFO agent manages financial strategy and analysis. In meetings, the CFO:
+
+1. **Analyzes Financials** - Reviews invoices, payments, and revenue data from finances.json
+2. **Pricing Guidance** - Provides recommendations based on market and cost analysis
+3. **Budget Planning** - Helps forecast expenses and revenue
+4. **Risk Assessment** - Evaluates financial implications of business decisions""",
+        "collaboration": {
+            "reports_to": "CEO",
+            "direct_reports": [],
+            "collaborates_with": ["Sales (pricing)", "PM (budgets)", "Legal (contracts)"],
+        },
+        "meeting_types": ["exec-meeting", "1on1", "strategy"],
+        "data_access": ["Finances data", "Invoice history", "Payment records", "Revenue projections"],
+    },
+    "cito": {
+        "how_it_works": """The CITO (Chief Information Technology Officer) agent guides technical strategy. In meetings, the CITO:
+
+1. **Evaluates Technology** - Assesses technical feasibility and architecture options
+2. **Reviews Ideas** - Provides technical perspective on new app submissions
+3. **Sets Standards** - Establishes coding practices and technology choices
+4. **Mentors Tech Team** - Guides DevLead, DesignLead, and QALead""",
+        "collaboration": {
+            "reports_to": "CEO",
+            "direct_reports": ["DevLead", "DesignLead", "QALead"],
+            "collaborates_with": ["PM (technical planning)", "Sales (technical sales support)"],
+        },
+        "meeting_types": ["tech-meeting", "exec-meeting", "idea-review", "1on1"],
+        "data_access": ["Projects data", "Technical decisions", "Architecture docs"],
+    },
+    "sales": {
+        "how_it_works": """The Sales agent handles business development and client acquisition. In meetings, Sales:
+
+1. **Manages Pipeline** - Tracks potential clients and deal stages
+2. **Proposal Support** - Helps craft pitches and proposals
+3. **Relationship Building** - Strategizes on client relationships
+4. **Market Intelligence** - Provides insights on competitors and opportunities""",
+        "collaboration": {
+            "reports_to": "CEO",
+            "direct_reports": [],
+            "collaborates_with": ["CFO (pricing)", "PM (scoping)", "Marketing (lead gen)"],
+        },
+        "meeting_types": ["exec-meeting", "1on1", "strategy"],
+        "data_access": ["Clients data", "Ideas pipeline", "Project history"],
+    },
+    "legal": {
+        "how_it_works": """The Legal agent provides guidance on contracts and compliance. In meetings, Legal:
+
+1. **Contract Review** - Analyzes terms and identifies risks
+2. **Compliance Guidance** - Advises on data privacy, IP, and regulations
+3. **Risk Assessment** - Evaluates legal implications of business decisions
+4. **Template Creation** - Helps draft standard agreements""",
+        "collaboration": {
+            "reports_to": "CEO",
+            "direct_reports": [],
+            "collaborates_with": ["CFO (contract terms)", "Sales (deal review)", "PM (client agreements)"],
+        },
+        "meeting_types": ["exec-meeting", "1on1", "idea-review"],
+        "data_access": ["Client contracts", "Project agreements", "Compliance docs"],
+    },
+    "dev_lead": {
+        "how_it_works": """The Development Lead agent manages technical implementation. In meetings, DevLead:
+
+1. **Architecture Design** - Creates technical blueprints for projects
+2. **Code Review** - Establishes quality standards and best practices
+3. **Sprint Planning** - Breaks down work into manageable tasks
+4. **Technical Debt** - Identifies and prioritizes tech debt resolution""",
+        "collaboration": {
+            "reports_to": "CITO",
+            "direct_reports": [],
+            "collaborates_with": ["DesignLead (implementation)", "QALead (testing)", "PM (scheduling)"],
+        },
+        "meeting_types": ["tech-meeting", "project-meeting", "1on1", "standup"],
+        "data_access": ["Projects data", "Technical specs", "Sprint backlogs"],
+    },
+    "design_lead": {
+        "how_it_works": """The Design Lead agent manages UI/UX and visual design. In meetings, DesignLead:
+
+1. **UX Strategy** - Defines user experience patterns and flows
+2. **Design Systems** - Maintains consistent visual language
+3. **User Research** - Interprets user feedback into design improvements
+4. **Prototype Review** - Evaluates designs against requirements""",
+        "collaboration": {
+            "reports_to": "CITO",
+            "direct_reports": [],
+            "collaborates_with": ["DevLead (implementation)", "QALead (usability)", "PM (requirements)"],
+        },
+        "meeting_types": ["tech-meeting", "project-meeting", "1on1", "idea-review"],
+        "data_access": ["Projects data", "Design specs", "User feedback"],
+    },
+    "qa_lead": {
+        "how_it_works": """The QA Lead agent manages quality assurance and testing. In meetings, QALead:
+
+1. **Test Strategy** - Defines testing approaches for each project
+2. **Bug Triage** - Prioritizes and categorizes reported issues
+3. **Release Certification** - Validates builds before deployment
+4. **Tester Coordination** - Works with beta tester program""",
+        "collaboration": {
+            "reports_to": "CITO",
+            "direct_reports": [],
+            "collaborates_with": ["DevLead (bug fixes)", "Support (user issues)", "PM (release planning)"],
+        },
+        "meeting_types": ["tech-meeting", "project-meeting", "1on1", "standup"],
+        "data_access": ["Projects data", "Testers data", "Bug reports", "Test results"],
+    },
+    "pm": {
+        "how_it_works": """The Project Manager agent coordinates project delivery. In meetings, PM:
+
+1. **Project Planning** - Creates timelines and milestones
+2. **Resource Allocation** - Balances team capacity across projects
+3. **Stakeholder Communication** - Bridges client and team needs
+4. **Risk Management** - Identifies and mitigates project risks""",
+        "collaboration": {
+            "reports_to": "CEO",
+            "direct_reports": ["CustomerSuccess", "Support"],
+            "collaborates_with": ["DevLead (scheduling)", "Clients (communication)", "CFO (budgets)"],
+        },
+        "meeting_types": ["project-meeting", "exec-meeting", "1on1", "standup", "retro"],
+        "data_access": ["Projects data", "Clients data", "Team schedules", "Milestones"],
+    },
+    "customer_success": {
+        "how_it_works": """The Customer Success agent manages post-sale client relationships. In meetings, CustomerSuccess:
+
+1. **Onboarding** - Ensures smooth client transitions after project launch
+2. **Health Monitoring** - Tracks client satisfaction and engagement
+3. **Expansion Opportunities** - Identifies upsell and cross-sell potential
+4. **Retention Strategy** - Develops approaches to maintain long-term relationships""",
+        "collaboration": {
+            "reports_to": "PM",
+            "direct_reports": [],
+            "collaborates_with": ["Sales (handoffs)", "Support (escalations)", "Marketing (testimonials)"],
+        },
+        "meeting_types": ["1on1", "project-meeting"],
+        "data_access": ["Clients data", "Projects data", "Support tickets", "Feedback"],
+    },
+    "marketing": {
+        "how_it_works": """The Marketing agent manages brand and growth strategies. In meetings, Marketing:
+
+1. **Brand Strategy** - Maintains consistent messaging and positioning
+2. **Content Planning** - Develops content calendars and campaigns
+3. **ASO/SEO** - Optimizes app store and search presence
+4. **Lead Generation** - Creates strategies to attract potential clients""",
+        "collaboration": {
+            "reports_to": "CEO",
+            "direct_reports": [],
+            "collaborates_with": ["Sales (lead handoff)", "CustomerSuccess (case studies)", "DesignLead (brand assets)"],
+        },
+        "meeting_types": ["exec-meeting", "1on1", "strategy"],
+        "data_access": ["Marketing metrics", "Client testimonials", "Campaign data"],
+    },
+    "support": {
+        "how_it_works": """The Support Lead agent manages customer service operations. In meetings, Support:
+
+1. **Ticket Triage** - Categorizes and prioritizes support requests
+2. **Knowledge Base** - Maintains documentation and FAQs
+3. **Escalation Management** - Routes complex issues appropriately
+4. **Tester Program** - Coordinates with beta testers for feedback""",
+        "collaboration": {
+            "reports_to": "PM",
+            "direct_reports": [],
+            "collaborates_with": ["QALead (bug reports)", "DevLead (technical issues)", "CustomerSuccess (escalations)"],
+        },
+        "meeting_types": ["1on1", "standup", "project-meeting"],
+        "data_access": ["Support tickets", "Testers data", "Knowledge base", "Bug reports"],
+    },
+}
+
+
+# =============================================================================
+# AGENT CUSTOMIZATIONS STORE
+# =============================================================================
+
+class AgentCustomizationsStore:
+    """Store for agent-specific customizations."""
+
+    def __init__(self):
+        self.file_path = DATA_DIR / "agent_customizations.json"
+        self._ensure_file()
+
+    def _ensure_file(self) -> None:
+        """Ensure the customizations file exists."""
+        if not self.file_path.exists():
+            self._save({})
+
+    def _load(self) -> dict[str, Any]:
+        """Load all customizations."""
+        content = self.file_path.read_text(encoding="utf-8")
+        if not content.strip():
+            return {}
+        return json.loads(content)
+
+    def _save(self, data: dict[str, Any]) -> None:
+        """Save customizations."""
+        self.file_path.write_text(
+            json.dumps(data, indent=2, default=str),
+            encoding="utf-8"
+        )
+
+    def get_agent_defaults(self, agent_id: str) -> dict[str, Any]:
+        """Get default values for an agent based on AGENT_INFO."""
+        from webapp.app import AGENT_INFO
+        agent_info = AGENT_INFO.get(agent_id, {})
+        return {
+            "display_name": agent_info.get("name", agent_id.replace("_", " ").title()),
+            "role_title": agent_info.get("role", agent_id.upper()),
+            "description": agent_info.get("description", ""),
+            "responsibilities": agent_info.get("responsibilities", []),
+            "metrics": agent_info.get("metrics", []),
+            "custom_instructions": "",
+            "is_active": True,
+        }
+
+    def get_agent(self, agent_id: str) -> dict[str, Any]:
+        """Get customizations for a specific agent, merged with defaults."""
+        all_data = self._load()
+        agent_data = all_data.get(agent_id, {})
+
+        # Get defaults and merge with customizations
+        defaults = self.get_agent_defaults(agent_id)
+        merged = {**defaults, **agent_data}
+
+        # Add documentation
+        merged["documentation"] = AGENT_DOCUMENTATION.get(agent_id, {})
+
+        return merged
+
+    def update_agent(self, agent_id: str, updates: dict[str, Any]) -> dict[str, Any]:
+        """Update customizations for a specific agent."""
+        all_data = self._load()
+
+        if agent_id not in all_data:
+            all_data[agent_id] = {}
+
+        # Only store non-default values
+        all_data[agent_id].update(updates)
+        all_data[agent_id]["updated_at"] = datetime.now().isoformat()
+
+        self._save(all_data)
+        return self.get_agent(agent_id)
+
+    def reset_agent(self, agent_id: str) -> dict[str, Any]:
+        """Reset an agent to defaults."""
+        all_data = self._load()
+        if agent_id in all_data:
+            del all_data[agent_id]
+            self._save(all_data)
+        return self.get_agent(agent_id)
+
+    def get_all_agents(self) -> dict[str, dict[str, Any]]:
+        """Get all agents with their customizations."""
+        from webapp.app import AGENT_INFO
+        result = {}
+        for agent_id in AGENT_INFO.keys():
+            result[agent_id] = self.get_agent(agent_id)
+        return result
+
+    def has_customizations(self, agent_id: str) -> bool:
+        """Check if an agent has any customizations."""
+        all_data = self._load()
+        return agent_id in all_data and bool(all_data[agent_id])
+
+
+# =============================================================================
 # CONVENIENCE FUNCTIONS
 # =============================================================================
 
@@ -1194,6 +1476,7 @@ _projects_store: ProjectsStore | None = None
 _finances_store: FinancesStore | None = None
 _agent_requests_store: AgentRequestsStore | None = None
 _settings_store: SettingsStore | None = None
+_agent_customizations_store: AgentCustomizationsStore | None = None
 
 
 def get_ideas_store() -> IdeasStore:
@@ -1250,3 +1533,11 @@ def get_settings_store() -> SettingsStore:
     if _settings_store is None:
         _settings_store = SettingsStore()
     return _settings_store
+
+
+def get_agent_customizations_store() -> AgentCustomizationsStore:
+    """Get the agent customizations store singleton."""
+    global _agent_customizations_store
+    if _agent_customizations_store is None:
+        _agent_customizations_store = AgentCustomizationsStore()
+    return _agent_customizations_store

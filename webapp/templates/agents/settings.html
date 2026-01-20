@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+
+{% block title %}{{ agent.name }} Settings{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('agents_list') }}">Agent Portals</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('agent_portal', agent_id=agent.id) }}">{{ agent.role }}</a></li>
+                <li class="breadcrumb-item active">Settings</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h1 class="h3">{{ agent.name }} Settings</h1>
+        <p class="text-muted">Customize how this agent appears and behaves</p>
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="{{ url_for('agent_portal', agent_id=agent.id) }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i>Back to Portal
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card content-card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-gear me-2"></i>Agent Configuration</h5>
+                {% if has_customizations %}
+                <span class="badge bg-info">Customized</span>
+                {% endif %}
+            </div>
+            <div class="card-body">
+                <form action="{{ url_for('agent_settings', agent_id=agent.id) }}" method="POST">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="display_name" class="form-label">Display Name</label>
+                            <input type="text" class="form-control" id="display_name" name="display_name"
+                                   value="{{ customizations.display_name }}" placeholder="{{ agent.name }}">
+                            <div class="form-text">How this agent's name appears in the dashboard</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="role_title" class="form-label">Role Title</label>
+                            <input type="text" class="form-control" id="role_title" name="role_title"
+                                   value="{{ customizations.role_title }}" placeholder="{{ agent.role }}">
+                            <div class="form-text">Short title shown in badges (e.g., CEO, CFO)</div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea class="form-control" id="description" name="description" rows="2"
+                                  placeholder="{{ agent.description }}">{{ customizations.description }}</textarea>
+                        <div class="form-text">What this agent does in your organization</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="responsibilities" class="form-label">Responsibilities</label>
+                        <textarea class="form-control" id="responsibilities" name="responsibilities" rows="4"
+                                  placeholder="One responsibility per line">{{ customizations.responsibilities | join('\n') }}</textarea>
+                        <div class="form-text">Enter one responsibility per line</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="metrics" class="form-label">Key Metrics</label>
+                        <textarea class="form-control" id="metrics" name="metrics" rows="3"
+                                  placeholder="One metric per line">{{ customizations.metrics | join('\n') }}</textarea>
+                        <div class="form-text">What this agent tracks and reports on (one per line)</div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="custom_instructions" class="form-label">Custom Instructions</label>
+                        <textarea class="form-control" id="custom_instructions" name="custom_instructions" rows="4"
+                                  placeholder="Additional context or instructions for AI meetings...">{{ customizations.custom_instructions }}</textarea>
+                        <div class="form-text">Extra context provided to the AI during meetings (e.g., "Focus on bootstrapped startups")</div>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg me-1"></i>Save Changes
+                        </button>
+                        {% if has_customizations %}
+                        <button type="button" class="btn btn-outline-warning" data-bs-toggle="modal" data-bs-target="#resetModal">
+                            <i class="bi bi-arrow-counterclockwise me-1"></i>Reset to Defaults
+                        </button>
+                        {% endif %}
+                        <a href="{{ url_for('agent_portal', agent_id=agent.id) }}" class="btn btn-outline-secondary">
+                            Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <!-- How It Works Summary -->
+        <div class="card content-card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i>About This Agent</h5>
+            </div>
+            <div class="card-body">
+                {% if documentation.how_it_works %}
+                <p class="small">{{ documentation.how_it_works[:200] }}...</p>
+                <a href="{{ url_for('agent_portal', agent_id=agent.id, tab='how-it-works') }}" class="small">
+                    Learn more <i class="bi bi-arrow-right"></i>
+                </a>
+                {% else %}
+                <p class="text-muted small">Documentation coming soon.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Tips -->
+        <div class="card content-card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-lightbulb me-2"></i>Tips</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled mb-0 small">
+                    <li class="mb-2">
+                        <i class="bi bi-check-circle text-success me-2"></i>
+                        Customize the name to match your company's terminology
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-check-circle text-success me-2"></i>
+                        Add custom instructions to tailor AI responses
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-check-circle text-success me-2"></i>
+                        Adjust responsibilities to fit your business model
+                    </li>
+                    <li class="mb-0">
+                        <i class="bi bi-check-circle text-success me-2"></i>
+                        Changes affect how the agent appears and responds
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Advanced -->
+        <div class="card content-card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-file-code me-2"></i>Advanced</h5>
+            </div>
+            <div class="card-body">
+                <p class="small text-muted mb-2">For deeper customization, edit the agent's system prompt:</p>
+                <code class="small">agents/{{ agent.id }}.md</code>
+                <p class="small text-muted mt-2 mb-0">This file controls how the agent thinks and responds in AI meetings.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Reset Confirmation Modal -->
+<div class="modal fade" id="resetModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Reset to Defaults?</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>This will reset all customizations for <strong>{{ agent.name }}</strong> back to the system defaults.</p>
+                <p class="text-muted small mb-0">This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form action="{{ url_for('agent_settings_reset', agent_id=agent.id) }}" method="POST" class="d-inline">
+                    <button type="submit" class="btn btn-warning">Reset to Defaults</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
