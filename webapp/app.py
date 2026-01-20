@@ -21,6 +21,7 @@ from src.data_store import (
     get_finances_store,
     get_agent_requests_store,
     get_settings_store,
+    get_agent_customizations_store,
     IdeaStatus,
     TesterStatus,
     ProjectStatus,
@@ -29,6 +30,7 @@ from src.data_store import (
     FeatureRequestStatus,
     FeatureRequestPriority,
     INDUSTRY_PRESETS,
+    AGENT_DOCUMENTATION,
 )
 from src import reports
 from src.utils import query_decisions, list_meetings, load_file
@@ -1799,6 +1801,7 @@ def agent_portal(agent_id):
 
     agent = AGENT_INFO[agent_id]
     store = get_agent_requests_store()
+    customizations_store = get_agent_customizations_store()
 
     # Get agent's requests
     requests = store.get_by_agent(agent_id)
@@ -1814,14 +1817,86 @@ def agent_portal(agent_id):
     # Get recent activity (requests sorted by date)
     recent_activity = sorted(requests, key=lambda x: x.get('created_at', ''), reverse=True)[:5]
 
+    # Get agent customizations and documentation
+    agent_customizations = customizations_store.get_agent(agent_id)
+    agent_docs = AGENT_DOCUMENTATION.get(agent_id, {})
+    has_customizations = customizations_store.has_customizations(agent_id)
+
+    # Get current tab from query string
+    current_tab = request.args.get('tab', 'overview')
+
     return render_template('agents/portal.html',
         agent=agent,
         requests=requests,
         request_stats=request_stats,
         recent_activity=recent_activity,
         priorities=FeatureRequestPriority,
-        statuses=FeatureRequestStatus
+        statuses=FeatureRequestStatus,
+        customizations=agent_customizations,
+        documentation=agent_docs,
+        has_customizations=has_customizations,
+        current_tab=current_tab,
+        all_agents=AGENT_INFO
     )
+
+
+@app.route('/agents/<agent_id>/settings', methods=['GET', 'POST'])
+def agent_settings(agent_id):
+    """View and edit agent settings."""
+    if agent_id not in AGENT_INFO:
+        flash('Agent not found', 'error')
+        return redirect(url_for('agents_list'))
+
+    agent = AGENT_INFO[agent_id]
+    customizations_store = get_agent_customizations_store()
+
+    if request.method == 'POST':
+        # Process form submission
+        updates = {
+            'display_name': request.form.get('display_name', '').strip(),
+            'role_title': request.form.get('role_title', '').strip(),
+            'description': request.form.get('description', '').strip(),
+            'custom_instructions': request.form.get('custom_instructions', '').strip(),
+        }
+
+        # Handle responsibilities (textarea, one per line)
+        responsibilities_text = request.form.get('responsibilities', '')
+        updates['responsibilities'] = [r.strip() for r in responsibilities_text.split('\n') if r.strip()]
+
+        # Handle metrics (textarea, one per line)
+        metrics_text = request.form.get('metrics', '')
+        updates['metrics'] = [m.strip() for m in metrics_text.split('\n') if m.strip()]
+
+        customizations_store.update_agent(agent_id, updates)
+        flash(f'{agent["name"]} settings updated successfully!', 'success')
+        return redirect(url_for('agent_portal', agent_id=agent_id, tab='settings'))
+
+    # GET request - show form
+    customizations = customizations_store.get_agent(agent_id)
+    documentation = AGENT_DOCUMENTATION.get(agent_id, {})
+    has_customizations = customizations_store.has_customizations(agent_id)
+
+    return render_template('agents/settings.html',
+        agent=agent,
+        customizations=customizations,
+        documentation=documentation,
+        has_customizations=has_customizations
+    )
+
+
+@app.route('/agents/<agent_id>/settings/reset', methods=['POST'])
+def agent_settings_reset(agent_id):
+    """Reset agent settings to defaults."""
+    if agent_id not in AGENT_INFO:
+        flash('Agent not found', 'error')
+        return redirect(url_for('agents_list'))
+
+    customizations_store = get_agent_customizations_store()
+    customizations_store.reset_agent(agent_id)
+
+    agent = AGENT_INFO[agent_id]
+    flash(f'{agent["name"]} settings reset to defaults.', 'success')
+    return redirect(url_for('agent_portal', agent_id=agent_id, tab='settings'))
 
 
 @app.route('/agents/<agent_id>/request/new', methods=['GET', 'POST'])

@@ -20,12 +20,15 @@
         <div class="card content-card">
             <div class="card-body">
                 <div class="d-flex align-items-center mb-3">
-                    <span class="agent-badge agent-{{ agent.id }} me-3" style="font-size: 1.5rem; padding: 0.75rem 1.5rem;">{{ agent.role }}</span>
+                    <span class="agent-badge agent-{{ agent.id }} me-3" style="font-size: 1.5rem; padding: 0.75rem 1.5rem;">{{ customizations.role_title or agent.role }}</span>
                     <div>
-                        <h1 class="h3 mb-1">{{ agent.name }}</h1>
-                        <p class="text-muted mb-0">{{ agent.description }}</p>
+                        <h1 class="h3 mb-1">{{ customizations.display_name or agent.name }}</h1>
+                        <p class="text-muted mb-0">{{ customizations.description or agent.description }}</p>
                     </div>
                 </div>
+                {% if has_customizations %}
+                <span class="badge bg-info"><i class="bi bi-pencil me-1"></i>Customized</span>
+                {% endif %}
             </div>
         </div>
     </div>
@@ -37,8 +40,8 @@
                     <a href="{{ url_for('agent_request_new', agent_id=agent.id) }}" class="btn btn-primary">
                         <i class="bi bi-plus-circle me-1"></i>New Feature Request
                     </a>
-                    <a href="{{ url_for('agent_requests_all', agent=agent.id) }}" class="btn btn-outline-primary">
-                        <i class="bi bi-list-ul me-1"></i>View My Requests
+                    <a href="{{ url_for('agent_settings', agent_id=agent.id) }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-gear me-1"></i>Agent Settings
                     </a>
                 </div>
             </div>
@@ -46,7 +49,44 @@
     </div>
 </div>
 
-<!-- Stats Row (HTMX auto-refresh every 30s) -->
+<!-- Tabs Navigation -->
+<ul class="nav nav-tabs mb-4" role="tablist">
+    <li class="nav-item" role="presentation">
+        <a class="nav-link {% if current_tab == 'overview' %}active{% endif %}"
+           href="{{ url_for('agent_portal', agent_id=agent.id, tab='overview') }}">
+            <i class="bi bi-house me-1"></i>Overview
+        </a>
+    </li>
+    <li class="nav-item" role="presentation">
+        <a class="nav-link {% if current_tab == 'requests' %}active{% endif %}"
+           href="{{ url_for('agent_portal', agent_id=agent.id, tab='requests') }}">
+            <i class="bi bi-lightbulb me-1"></i>Feature Requests
+            {% if request_stats.pending > 0 %}
+            <span class="badge bg-warning">{{ request_stats.pending }}</span>
+            {% endif %}
+        </a>
+    </li>
+    <li class="nav-item" role="presentation">
+        <a class="nav-link {% if current_tab == 'settings' %}active{% endif %}"
+           href="{{ url_for('agent_portal', agent_id=agent.id, tab='settings') }}">
+            <i class="bi bi-gear me-1"></i>Settings
+            {% if has_customizations %}
+            <span class="badge bg-info"><i class="bi bi-pencil"></i></span>
+            {% endif %}
+        </a>
+    </li>
+    <li class="nav-item" role="presentation">
+        <a class="nav-link {% if current_tab == 'how-it-works' %}active{% endif %}"
+           href="{{ url_for('agent_portal', agent_id=agent.id, tab='how-it-works') }}">
+            <i class="bi bi-info-circle me-1"></i>How It Works
+        </a>
+    </li>
+</ul>
+
+<!-- Tab Content -->
+{% if current_tab == 'overview' %}
+<!-- Overview Tab -->
+<!-- Stats Row -->
 <div class="row mb-4"
      id="agent-stats"
      hx-get="{{ url_for('htmx_agent_stats', agent_id=agent.id) }}"
@@ -95,7 +135,7 @@
             </div>
             <div class="card-body">
                 <ul class="list-unstyled mb-0">
-                    {% for resp in agent.responsibilities %}
+                    {% for resp in customizations.responsibilities or agent.responsibilities %}
                     <li class="mb-2">
                         <i class="bi bi-check-circle text-success me-2"></i>{{ resp }}
                     </li>
@@ -112,7 +152,7 @@
             </div>
             <div class="card-body">
                 <ul class="list-unstyled mb-0">
-                    {% for metric in agent.metrics %}
+                    {% for metric in customizations.metrics or agent.metrics %}
                     <li class="mb-2">
                         <i class="bi bi-speedometer2 text-primary me-2"></i>{{ metric }}
                     </li>
@@ -126,7 +166,6 @@
         <div class="card content-card h-100">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="mb-0"><i class="bi bi-clock-history me-2"></i>Recent Activity</h5>
-                <span class="htmx-indicator spinner-border spinner-border-sm text-primary" style="display: none;"></span>
             </div>
             <div class="card-body"
                  id="recent-activity"
@@ -158,12 +197,12 @@
     </div>
 </div>
 
-<!-- Feature Requests (HTMX auto-refresh) -->
+{% elif current_tab == 'requests' %}
+<!-- Feature Requests Tab -->
 <div class="card content-card">
     <div class="card-header d-flex justify-content-between align-items-center">
         <h5 class="mb-0">
             <i class="bi bi-lightbulb me-2"></i>Feature Requests
-            <span class="htmx-indicator spinner-border spinner-border-sm text-primary ms-2" style="display: none;"></span>
         </h5>
         <div>
             <button class="btn btn-sm btn-outline-secondary me-2"
@@ -238,4 +277,268 @@
         {% endif %}
     </div>
 </div>
+
+{% elif current_tab == 'settings' %}
+<!-- Settings Tab -->
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card content-card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-gear me-2"></i>Agent Settings</h5>
+                {% if has_customizations %}
+                <span class="badge bg-info">Customized</span>
+                {% endif %}
+            </div>
+            <div class="card-body">
+                <form action="{{ url_for('agent_settings', agent_id=agent.id) }}" method="POST">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="display_name" class="form-label">Display Name</label>
+                            <input type="text" class="form-control" id="display_name" name="display_name"
+                                   value="{{ customizations.display_name }}" placeholder="{{ agent.name }}">
+                            <div class="form-text">How this agent's name appears in the dashboard</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="role_title" class="form-label">Role Title</label>
+                            <input type="text" class="form-control" id="role_title" name="role_title"
+                                   value="{{ customizations.role_title }}" placeholder="{{ agent.role }}">
+                            <div class="form-text">Short title shown in badges (e.g., CEO, CFO)</div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea class="form-control" id="description" name="description" rows="2"
+                                  placeholder="{{ agent.description }}">{{ customizations.description }}</textarea>
+                        <div class="form-text">What this agent does in your organization</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="responsibilities" class="form-label">Responsibilities</label>
+                        <textarea class="form-control" id="responsibilities" name="responsibilities" rows="4"
+                                  placeholder="One responsibility per line">{{ customizations.responsibilities | join('\n') }}</textarea>
+                        <div class="form-text">Enter one responsibility per line</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="metrics" class="form-label">Key Metrics</label>
+                        <textarea class="form-control" id="metrics" name="metrics" rows="3"
+                                  placeholder="One metric per line">{{ customizations.metrics | join('\n') }}</textarea>
+                        <div class="form-text">What this agent tracks and reports on (one per line)</div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="custom_instructions" class="form-label">Custom Instructions</label>
+                        <textarea class="form-control" id="custom_instructions" name="custom_instructions" rows="4"
+                                  placeholder="Additional context or instructions for AI meetings...">{{ customizations.custom_instructions }}</textarea>
+                        <div class="form-text">Extra context provided to the AI during meetings (e.g., "Focus on bootstrapped startups")</div>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg me-1"></i>Save Changes
+                        </button>
+                        {% if has_customizations %}
+                        <button type="button" class="btn btn-outline-warning" data-bs-toggle="modal" data-bs-target="#resetModal">
+                            <i class="bi bi-arrow-counterclockwise me-1"></i>Reset to Defaults
+                        </button>
+                        {% endif %}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card content-card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-lightbulb me-2"></i>Tips</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled mb-0 small">
+                    <li class="mb-2">
+                        <i class="bi bi-check-circle text-success me-2"></i>
+                        Customize the name to match your company's terminology
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-check-circle text-success me-2"></i>
+                        Add custom instructions to tailor AI responses
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-check-circle text-success me-2"></i>
+                        Adjust responsibilities to fit your business model
+                    </li>
+                    <li class="mb-0">
+                        <i class="bi bi-check-circle text-success me-2"></i>
+                        Changes affect how the agent appears and responds
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="card content-card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-file-code me-2"></i>Advanced</h5>
+            </div>
+            <div class="card-body">
+                <p class="small text-muted mb-2">For deeper customization, edit the agent's system prompt:</p>
+                <code class="small">agents/{{ agent.id }}.md</code>
+                <p class="small text-muted mt-2 mb-0">This file controls how the agent thinks and responds in AI meetings.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Reset Confirmation Modal -->
+<div class="modal fade" id="resetModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Reset to Defaults?</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>This will reset all customizations for <strong>{{ agent.name }}</strong> back to the system defaults.</p>
+                <p class="text-muted small mb-0">This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form action="{{ url_for('agent_settings_reset', agent_id=agent.id) }}" method="POST" class="d-inline">
+                    <button type="submit" class="btn btn-warning">Reset to Defaults</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% elif current_tab == 'how-it-works' %}
+<!-- How It Works Tab -->
+<div class="row">
+    <div class="col-lg-8">
+        <!-- How This Agent Works -->
+        <div class="card content-card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-cpu me-2"></i>How {{ agent.name }} Works</h5>
+            </div>
+            <div class="card-body">
+                {% if documentation.how_it_works %}
+                <div class="agent-docs">
+                    {{ documentation.how_it_works | replace('\n\n', '</p><p>') | replace('\n', '<br>') | safe }}
+                </div>
+                {% else %}
+                <p class="text-muted">Documentation not yet available for this agent.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Collaboration -->
+        <div class="card content-card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-people me-2"></i>Collaboration & Reporting</h5>
+            </div>
+            <div class="card-body">
+                {% if documentation.collaboration %}
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <h6 class="text-muted mb-2">Reports To</h6>
+                        <span class="badge bg-primary fs-6">{{ documentation.collaboration.reports_to }}</span>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <h6 class="text-muted mb-2">Direct Reports</h6>
+                        {% if documentation.collaboration.direct_reports %}
+                            {% for report in documentation.collaboration.direct_reports %}
+                            <span class="badge bg-secondary me-1">{{ report }}</span>
+                            {% endfor %}
+                        {% else %}
+                            <span class="text-muted">None</span>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <h6 class="text-muted mb-2">Collaborates With</h6>
+                        {% for collab in documentation.collaboration.collaborates_with %}
+                        <div class="small mb-1">{{ collab }}</div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% else %}
+                <p class="text-muted">Collaboration information not available.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Data Access -->
+        <div class="card content-card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-database me-2"></i>Data Access</h5>
+            </div>
+            <div class="card-body">
+                {% if documentation.data_access %}
+                <p class="text-muted mb-3">This agent has access to the following data during meetings:</p>
+                <div class="row">
+                    {% for data in documentation.data_access %}
+                    <div class="col-md-6 col-lg-4 mb-2">
+                        <i class="bi bi-folder text-primary me-2"></i>{{ data }}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted">Data access information not available.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <!-- Meeting Types -->
+        <div class="card content-card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-calendar-event me-2"></i>Meeting Types</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted small mb-3">This agent participates in:</p>
+                {% if documentation.meeting_types %}
+                    {% for meeting_type in documentation.meeting_types %}
+                    <div class="mb-2">
+                        <span class="badge bg-outline-primary border border-primary text-primary">{{ meeting_type }}</span>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted">Meeting information not available.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- CLI Commands -->
+        <div class="card content-card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-terminal me-2"></i>CLI Commands</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted small mb-2">Start a 1:1 meeting:</p>
+                <code class="d-block bg-light p-2 rounded mb-3 small">python orchestrator.py 1on1 --agent {{ agent.id }}</code>
+
+                <p class="text-muted small mb-2">With a specific topic:</p>
+                <code class="d-block bg-light p-2 rounded small">python orchestrator.py 1on1 --agent {{ agent.id }} --topic "Your topic"</code>
+            </div>
+        </div>
+
+        <!-- Feature Request Workflow -->
+        <div class="card content-card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-diagram-3 me-2"></i>Request Workflow</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted small mb-3">How feature requests work:</p>
+                <ol class="small mb-0">
+                    <li class="mb-2"><strong>Submit</strong> - Agent describes what they need</li>
+                    <li class="mb-2"><strong>Review</strong> - Architect evaluates the request</li>
+                    <li class="mb-2"><strong>Approve/Reject</strong> - Decision with feedback</li>
+                    <li class="mb-0"><strong>Implement</strong> - Approved requests are built</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
 {% endblock %}
