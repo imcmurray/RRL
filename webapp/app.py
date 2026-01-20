@@ -528,21 +528,38 @@ def testers_edit(tester_id):
         return redirect(url_for('testers_list'))
 
     if request.method == 'POST':
-        devices = [d.strip() for d in request.form.get('devices', '').split('\n') if d.strip()]
-        skills = [s.strip() for s in request.form.get('skills', '').split('\n') if s.strip()]
+        # Get list fields
+        platforms = request.form.getlist('platforms')
+        testing_types = request.form.getlist('testing_types')
 
         store.update(tester_id, {
+            # Personal Information
             'name': request.form.get('name'),
             'email': request.form.get('email'),
             'phone': request.form.get('phone', ''),
-            'location': request.form.get('location', ''),
+            'country': request.form.get('country', ''),
             'timezone': request.form.get('timezone', ''),
-            'devices': devices,
-            'skills': skills,
+            # Platform Availability
+            'platforms': platforms,
+            'primary_device': request.form.get('primary_device', ''),
+            'os_version': request.form.get('os_version', ''),
+            'additional_devices': request.form.get('additional_devices', ''),
+            # Testing Experience
             'experience_level': request.form.get('experience_level', ''),
-            'hours_per_week': int(request.form.get('hours_per_week', 5)) if request.form.get('hours_per_week') else 5,
+            'testing_types': testing_types,
+            'previous_programs': request.form.get('previous_programs', ''),
+            # Availability
+            'hours_per_week': request.form.get('hours_per_week', ''),
+            'response_time': request.form.get('response_time', ''),
+            'commit_14_days': request.form.get('commit_14_days') == 'Yes',
+            # Payment
             'payment_method': request.form.get('payment_method', ''),
-            'payment_details': request.form.get('payment_details', ''),
+            'crypto_type': request.form.get('crypto_type', ''),
+            'payment_handle': request.form.get('payment_handle', ''),
+            # Additional Info
+            'source': request.form.get('source', ''),
+            'why_interested': request.form.get('why_interested', ''),
+            'additional_info': request.form.get('additional_info', ''),
         })
 
         flash(f'Tester "{tester["name"]}" updated!', 'success')
@@ -556,24 +573,47 @@ def testers_create():
     """Create a new tester."""
     store = get_testers_store()
 
-    devices = [d.strip() for d in request.form.get('devices', '').split('\n') if d.strip()]
-    skills = [s.strip() for s in request.form.get('skills', '').split('\n') if s.strip()]
+    # Get list fields
+    platforms = request.form.getlist('platforms')
+    testing_types = request.form.getlist('testing_types')
 
     tester = store.create_tester(
         name=request.form.get('name'),
         email=request.form.get('email'),
-        devices=devices,
-        experience_level=request.form.get('experience_level', 'some'),
-        hours_per_week=int(request.form.get('hours_per_week', 5)) if request.form.get('hours_per_week') else 5,
-        payment_method=request.form.get('payment_method', 'paypal'),
-        payment_details=request.form.get('payment_details'),
-        location=request.form.get('location', ''),
+        devices=platforms,  # Use platforms as devices for backwards compatibility
+        experience_level=request.form.get('experience_level', 'New to testing'),
+        hours_per_week=request.form.get('hours_per_week', '1-2 hours'),
+        payment_method=request.form.get('payment_method', 'PayPal'),
+        payment_details=request.form.get('payment_handle', ''),  # Map payment_handle to payment_details
+        location=request.form.get('country', ''),
         languages=['English'],
     )
 
-    # Add skills if provided
-    if skills:
-        store.update(tester['id'], {'skills': skills})
+    # Update with all the new fields
+    store.update(tester['id'], {
+        # Personal Information
+        'phone': request.form.get('phone', ''),
+        'country': request.form.get('country', ''),
+        'timezone': request.form.get('timezone', ''),
+        # Platform Availability
+        'platforms': platforms,
+        'primary_device': request.form.get('primary_device', ''),
+        'os_version': request.form.get('os_version', ''),
+        'additional_devices': request.form.get('additional_devices', ''),
+        # Testing Experience
+        'testing_types': testing_types,
+        'previous_programs': request.form.get('previous_programs', ''),
+        # Availability
+        'response_time': request.form.get('response_time', ''),
+        'commit_14_days': request.form.get('commit_14_days') == 'Yes',
+        # Payment
+        'crypto_type': request.form.get('crypto_type', ''),
+        'payment_handle': request.form.get('payment_handle', ''),
+        # Additional Info
+        'source': request.form.get('source', ''),
+        'why_interested': request.form.get('why_interested', ''),
+        'additional_info': request.form.get('additional_info', ''),
+    })
 
     flash(f'Tester "{tester["name"]}" created successfully!', 'success')
     return redirect(url_for('testers_detail', tester_id=tester['id']))

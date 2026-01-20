@@ -21,6 +21,7 @@
             <div class="card-body">
                 <form action="{{ url_for('testers_edit', tester_id=tester.id) if tester else url_for('testers_create') }}" method="post" class="needs-validation" novalidate>
 
+                    <!-- Section 1: Personal Information -->
                     <h5 class="mb-4"><i class="bi bi-person me-2"></i>Personal Information</h5>
 
                     <div class="row">
@@ -40,127 +41,325 @@
                         <div class="col-md-6 mb-3">
                             <label for="phone" class="form-label">Phone</label>
                             <input type="tel" class="form-control" id="phone" name="phone"
-                                   value="{{ tester.phone if tester else '' }}">
+                                   value="{{ tester.phone if tester else '' }}" placeholder="+1 (555) 000-0000">
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label for="location" class="form-label">Location</label>
-                            <input type="text" class="form-control" id="location" name="location"
-                                   value="{{ tester.location if tester else '' }}" placeholder="City, Country">
+                            <label for="country" class="form-label">Country/Region *</label>
+                            <select class="form-select" id="country" name="country" required>
+                                <option value="">Select country...</option>
+                                <option value="United States" {{ 'selected' if tester and tester.country == 'United States' }}>United States</option>
+                                <option value="Canada" {{ 'selected' if tester and tester.country == 'Canada' }}>Canada</option>
+                                <option value="United Kingdom" {{ 'selected' if tester and tester.country == 'United Kingdom' }}>United Kingdom</option>
+                                <option value="Australia" {{ 'selected' if tester and tester.country == 'Australia' }}>Australia</option>
+                                <option value="Germany" {{ 'selected' if tester and tester.country == 'Germany' }}>Germany</option>
+                                <option value="France" {{ 'selected' if tester and tester.country == 'France' }}>France</option>
+                                <option value="Spain" {{ 'selected' if tester and tester.country == 'Spain' }}>Spain</option>
+                                <option value="Italy" {{ 'selected' if tester and tester.country == 'Italy' }}>Italy</option>
+                                <option value="Netherlands" {{ 'selected' if tester and tester.country == 'Netherlands' }}>Netherlands</option>
+                                <option value="Brazil" {{ 'selected' if tester and tester.country == 'Brazil' }}>Brazil</option>
+                                <option value="Mexico" {{ 'selected' if tester and tester.country == 'Mexico' }}>Mexico</option>
+                                <option value="India" {{ 'selected' if tester and tester.country == 'India' }}>India</option>
+                                <option value="Japan" {{ 'selected' if tester and tester.country == 'Japan' }}>Japan</option>
+                                <option value="South Korea" {{ 'selected' if tester and tester.country == 'South Korea' }}>South Korea</option>
+                                <option value="Singapore" {{ 'selected' if tester and tester.country == 'Singapore' }}>Singapore</option>
+                                <option value="Other" {{ 'selected' if tester and tester.country == 'Other' }}>Other</option>
+                            </select>
                         </div>
                     </div>
 
                     <div class="mb-3">
-                        <label for="timezone" class="form-label">Timezone</label>
-                        <select class="form-select" id="timezone" name="timezone">
+                        <label for="timezone" class="form-label">Timezone *</label>
+                        <select class="form-select" id="timezone" name="timezone" required>
                             <option value="">Select timezone...</option>
-                            <option value="America/New_York" {{ 'selected' if tester and tester.timezone == 'America/New_York' }}>Eastern Time (ET)</option>
-                            <option value="America/Chicago" {{ 'selected' if tester and tester.timezone == 'America/Chicago' }}>Central Time (CT)</option>
-                            <option value="America/Denver" {{ 'selected' if tester and tester.timezone == 'America/Denver' }}>Mountain Time (MT)</option>
-                            <option value="America/Los_Angeles" {{ 'selected' if tester and tester.timezone == 'America/Los_Angeles' }}>Pacific Time (PT)</option>
-                            <option value="Europe/London" {{ 'selected' if tester and tester.timezone == 'Europe/London' }}>GMT/UTC</option>
-                            <option value="Europe/Paris" {{ 'selected' if tester and tester.timezone == 'Europe/Paris' }}>Central European Time</option>
-                            <option value="Asia/Tokyo" {{ 'selected' if tester and tester.timezone == 'Asia/Tokyo' }}>Japan Standard Time</option>
-                            <option value="Australia/Sydney" {{ 'selected' if tester and tester.timezone == 'Australia/Sydney' }}>Australian Eastern Time</option>
+                            <option value="UTC-12:00" {{ 'selected' if tester and tester.timezone == 'UTC-12:00' }}>(UTC-12:00) International Date Line West</option>
+                            <option value="UTC-11:00" {{ 'selected' if tester and tester.timezone == 'UTC-11:00' }}>(UTC-11:00) Midway Island, Samoa</option>
+                            <option value="UTC-10:00" {{ 'selected' if tester and tester.timezone == 'UTC-10:00' }}>(UTC-10:00) Hawaii</option>
+                            <option value="UTC-09:00" {{ 'selected' if tester and tester.timezone == 'UTC-09:00' }}>(UTC-09:00) Alaska</option>
+                            <option value="UTC-08:00" {{ 'selected' if tester and tester.timezone == 'UTC-08:00' }}>(UTC-08:00) Pacific Time (US & Canada)</option>
+                            <option value="UTC-07:00" {{ 'selected' if tester and tester.timezone == 'UTC-07:00' }}>(UTC-07:00) Mountain Time (US & Canada)</option>
+                            <option value="UTC-06:00" {{ 'selected' if tester and tester.timezone == 'UTC-06:00' }}>(UTC-06:00) Central Time (US & Canada)</option>
+                            <option value="UTC-05:00" {{ 'selected' if tester and tester.timezone == 'UTC-05:00' }}>(UTC-05:00) Eastern Time (US & Canada)</option>
+                            <option value="UTC-04:00" {{ 'selected' if tester and tester.timezone == 'UTC-04:00' }}>(UTC-04:00) Atlantic Time (Canada)</option>
+                            <option value="UTC-03:00" {{ 'selected' if tester and tester.timezone == 'UTC-03:00' }}>(UTC-03:00) Buenos Aires, Brasilia</option>
+                            <option value="UTC+00:00" {{ 'selected' if tester and tester.timezone == 'UTC+00:00' }}>(UTC+00:00) London, Dublin, Lisbon</option>
+                            <option value="UTC+01:00" {{ 'selected' if tester and tester.timezone == 'UTC+01:00' }}>(UTC+01:00) Paris, Berlin, Rome, Madrid</option>
+                            <option value="UTC+02:00" {{ 'selected' if tester and tester.timezone == 'UTC+02:00' }}>(UTC+02:00) Athens, Istanbul, Cairo</option>
+                            <option value="UTC+03:00" {{ 'selected' if tester and tester.timezone == 'UTC+03:00' }}>(UTC+03:00) Moscow, Kuwait, Riyadh</option>
+                            <option value="UTC+05:30" {{ 'selected' if tester and tester.timezone == 'UTC+05:30' }}>(UTC+05:30) Mumbai, New Delhi</option>
+                            <option value="UTC+08:00" {{ 'selected' if tester and tester.timezone == 'UTC+08:00' }}>(UTC+08:00) Singapore, Hong Kong, Beijing</option>
+                            <option value="UTC+09:00" {{ 'selected' if tester and tester.timezone == 'UTC+09:00' }}>(UTC+09:00) Tokyo, Seoul</option>
+                            <option value="UTC+10:00" {{ 'selected' if tester and tester.timezone == 'UTC+10:00' }}>(UTC+10:00) Sydney, Melbourne</option>
+                            <option value="UTC+12:00" {{ 'selected' if tester and tester.timezone == 'UTC+12:00' }}>(UTC+12:00) Auckland, Wellington</option>
                         </select>
                     </div>
 
+                    <!-- Section 2: Platform Availability -->
                     <hr class="my-4">
-                    <h5 class="mb-4"><i class="bi bi-phone me-2"></i>Devices</h5>
+                    <h5 class="mb-4"><i class="bi bi-display me-2"></i>Platform Availability</h5>
 
                     <div class="mb-3">
-                        <label class="form-label">Available Devices *</label>
-                        <textarea class="form-control" id="devices" name="devices" rows="3"
-                                  placeholder="One device per line (e.g., iPhone 14 Pro, Samsung Galaxy S23)">{% if tester and tester.devices %}{% for d in tester.devices %}{{ d }}
-{% endfor %}{% endif %}</textarea>
-                        <div class="form-text">List each device on a separate line.</div>
+                        <label class="form-label">Platforms Available for Testing *</label>
+                        <div class="row g-2">
+                            {% set platforms_list = tester.platforms if tester and tester.platforms else [] %}
+                            <div class="col-md-3 col-6">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="platforms" value="iOS (iPhone)" id="plat_iphone" {{ 'checked' if 'iOS (iPhone)' in platforms_list }}>
+                                    <label class="form-check-label" for="plat_iphone">iOS (iPhone)</label>
+                                </div>
+                            </div>
+                            <div class="col-md-3 col-6">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="platforms" value="iOS (iPad)" id="plat_ipad" {{ 'checked' if 'iOS (iPad)' in platforms_list }}>
+                                    <label class="form-check-label" for="plat_ipad">iOS (iPad)</label>
+                                </div>
+                            </div>
+                            <div class="col-md-3 col-6">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="platforms" value="Android Phone" id="plat_android" {{ 'checked' if 'Android Phone' in platforms_list }}>
+                                    <label class="form-check-label" for="plat_android">Android Phone</label>
+                                </div>
+                            </div>
+                            <div class="col-md-3 col-6">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="platforms" value="Android Tablet" id="plat_android_tab" {{ 'checked' if 'Android Tablet' in platforms_list }}>
+                                    <label class="form-check-label" for="plat_android_tab">Android Tablet</label>
+                                </div>
+                            </div>
+                            <div class="col-md-3 col-6">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="platforms" value="Web (Desktop)" id="plat_web" {{ 'checked' if 'Web (Desktop)' in platforms_list }}>
+                                    <label class="form-check-label" for="plat_web">Web (Desktop)</label>
+                                </div>
+                            </div>
+                            <div class="col-md-3 col-6">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="platforms" value="Windows" id="plat_windows" {{ 'checked' if 'Windows' in platforms_list }}>
+                                    <label class="form-check-label" for="plat_windows">Windows</label>
+                                </div>
+                            </div>
+                            <div class="col-md-3 col-6">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="platforms" value="macOS" id="plat_macos" {{ 'checked' if 'macOS' in platforms_list }}>
+                                    <label class="form-check-label" for="plat_macos">macOS</label>
+                                </div>
+                            </div>
+                            <div class="col-md-3 col-6">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="platforms" value="Linux" id="plat_linux" {{ 'checked' if 'Linux' in platforms_list }}>
+                                    <label class="form-check-label" for="plat_linux">Linux</label>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-
-                    <hr class="my-4">
-                    <h5 class="mb-4"><i class="bi bi-star me-2"></i>Testing Profile</h5>
 
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label for="experience_level" class="form-label">Experience Level</label>
-                            <select class="form-select" id="experience_level" name="experience_level">
-                                <option value="">Select...</option>
-                                <option value="Beginner" {{ 'selected' if tester and tester.experience_level == 'Beginner' }}>Beginner</option>
-                                <option value="Intermediate" {{ 'selected' if tester and tester.experience_level == 'Intermediate' }}>Intermediate</option>
-                                <option value="Advanced" {{ 'selected' if tester and tester.experience_level == 'Advanced' }}>Advanced</option>
-                                <option value="Expert" {{ 'selected' if tester and tester.experience_level == 'Expert' }}>Expert</option>
-                            </select>
+                            <label for="primary_device" class="form-label">Primary Mobile Device</label>
+                            <input type="text" class="form-control" id="primary_device" name="primary_device"
+                                   value="{{ tester.primary_device if tester else '' }}" placeholder="e.g., iPhone 15 Pro, Samsung Galaxy S24">
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label for="hours_per_week" class="form-label">Available Hours/Week</label>
-                            <input type="number" class="form-control" id="hours_per_week" name="hours_per_week"
-                                   value="{{ tester.hours_per_week if tester else '' }}" min="1" max="40">
+                            <label for="os_version" class="form-label">Mobile OS Version</label>
+                            <input type="text" class="form-control" id="os_version" name="os_version"
+                                   value="{{ tester.os_version if tester else '' }}" placeholder="e.g., iOS 17.2, Android 14">
                         </div>
                     </div>
 
                     <div class="mb-3">
-                        <label for="skills" class="form-label">Testing Skills</label>
-                        <textarea class="form-control" id="skills" name="skills" rows="2"
-                                  placeholder="One skill per line (e.g., Accessibility Testing, Performance Testing)">{% if tester and tester.skills %}{% for s in tester.skills %}{{ s }}
-{% endfor %}{% endif %}</textarea>
+                        <label for="additional_devices" class="form-label">Additional Devices</label>
+                        <textarea class="form-control" id="additional_devices" name="additional_devices" rows="2"
+                                  placeholder="List any other devices available for testing">{{ tester.additional_devices if tester else '' }}</textarea>
                     </div>
 
-                    {% if tester %}
-                    <!-- Payment section only shown when editing existing testers -->
+                    <!-- Section 3: Testing Experience -->
                     <hr class="my-4">
-                    <h5 class="mb-4"><i class="bi bi-credit-card me-2"></i>Payment</h5>
+                    <h5 class="mb-4"><i class="bi bi-star me-2"></i>Testing Experience</h5>
+
+                    <div class="mb-3">
+                        <label class="form-label">Experience Level *</label>
+                        <div class="row g-2">
+                            <div class="col-md-6">
+                                <div class="form-check border rounded p-3">
+                                    <input class="form-check-input" type="radio" name="experience_level" value="New to testing" id="exp_new" {{ 'checked' if tester and tester.experience_level == 'New to testing' }} required>
+                                    <label class="form-check-label" for="exp_new">
+                                        <strong>New to Testing</strong><br>
+                                        <small class="text-muted">No prior experience, but eager to learn</small>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check border rounded p-3">
+                                    <input class="form-check-input" type="radio" name="experience_level" value="Some experience" id="exp_some" {{ 'checked' if tester and tester.experience_level == 'Some experience' }}>
+                                    <label class="form-check-label" for="exp_some">
+                                        <strong>Some Experience</strong><br>
+                                        <small class="text-muted">Personal projects, beta programs</small>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check border rounded p-3">
+                                    <input class="form-check-input" type="radio" name="experience_level" value="Experienced" id="exp_exp" {{ 'checked' if tester and tester.experience_level == 'Experienced' }}>
+                                    <label class="form-check-label" for="exp_exp">
+                                        <strong>Experienced</strong><br>
+                                        <small class="text-muted">Regular beta tester with multiple programs</small>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check border rounded p-3">
+                                    <input class="form-check-input" type="radio" name="experience_level" value="Professional" id="exp_pro" {{ 'checked' if tester and tester.experience_level == 'Professional' }}>
+                                    <label class="form-check-label" for="exp_pro">
+                                        <strong>Professional</strong><br>
+                                        <small class="text-muted">QA background or professional testing</small>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Types of Testing Familiar With</label>
+                        <div class="row g-2">
+                            {% set testing_types_list = tester.testing_types if tester and tester.testing_types else [] %}
+                            <div class="col-md-4 col-6">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="testing_types" value="Functional testing" id="test_func" {{ 'checked' if 'Functional testing' in testing_types_list }}>
+                                    <label class="form-check-label" for="test_func">Functional Testing</label>
+                                </div>
+                            </div>
+                            <div class="col-md-4 col-6">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="testing_types" value="UI/UX feedback" id="test_ux" {{ 'checked' if 'UI/UX feedback' in testing_types_list }}>
+                                    <label class="form-check-label" for="test_ux">UI/UX Feedback</label>
+                                </div>
+                            </div>
+                            <div class="col-md-4 col-6">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="testing_types" value="Accessibility testing" id="test_a11y" {{ 'checked' if 'Accessibility testing' in testing_types_list }}>
+                                    <label class="form-check-label" for="test_a11y">Accessibility Testing</label>
+                                </div>
+                            </div>
+                            <div class="col-md-4 col-6">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="testing_types" value="Performance testing" id="test_perf" {{ 'checked' if 'Performance testing' in testing_types_list }}>
+                                    <label class="form-check-label" for="test_perf">Performance Testing</label>
+                                </div>
+                            </div>
+                            <div class="col-md-4 col-6">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="testing_types" value="Bug reporting" id="test_bug" {{ 'checked' if 'Bug reporting' in testing_types_list }}>
+                                    <label class="form-check-label" for="test_bug">Bug Reporting</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="previous_programs" class="form-label">Previous Beta Programs</label>
+                        <textarea class="form-control" id="previous_programs" name="previous_programs" rows="2"
+                                  placeholder="e.g., TestFlight apps, Google Play beta programs, etc.">{{ tester.previous_programs if tester else '' }}</textarea>
+                    </div>
+
+                    <!-- Section 4: Availability & Commitment -->
+                    <hr class="my-4">
+                    <h5 class="mb-4"><i class="bi bi-clock me-2"></i>Availability & Commitment</h5>
 
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label for="payment_method" class="form-label">Preferred Payment Method</label>
-                            <select class="form-select" id="payment_method" name="payment_method" onchange="toggleCryptoField()">
-                                <option value="">Select...</option>
-                                <optgroup label="Traditional">
-                                    <option value="PayPal" {{ 'selected' if tester.payment_method == 'PayPal' }}>PayPal</option>
-                                    <option value="Bank Transfer" {{ 'selected' if tester.payment_method == 'Bank Transfer' }}>Bank Transfer</option>
-                                    <option value="Venmo" {{ 'selected' if tester.payment_method == 'Venmo' }}>Venmo</option>
-                                    <option value="Check" {{ 'selected' if tester.payment_method == 'Check' }}>Check</option>
-                                </optgroup>
-                                <optgroup label="Cryptocurrency">
-                                    <option value="Bitcoin" {{ 'selected' if tester.payment_method == 'Bitcoin' }}>Bitcoin (BTC)</option>
-                                    <option value="Ethereum" {{ 'selected' if tester.payment_method == 'Ethereum' }}>Ethereum (ETH)</option>
-                                    <option value="USDC" {{ 'selected' if tester.payment_method == 'USDC' }}>USD Coin (USDC)</option>
-                                    <option value="Dogecoin" {{ 'selected' if tester.payment_method == 'Dogecoin' }}>Dogecoin (DOGE)</option>
-                                    <option value="XRP" {{ 'selected' if tester.payment_method == 'XRP' }}>Ripple (XRP)</option>
-                                    <option value="Stellar" {{ 'selected' if tester.payment_method == 'Stellar' }}>Stellar (XLM)</option>
-                                    <option value="Dash" {{ 'selected' if tester.payment_method == 'Dash' }}>Dash (DASH)</option>
-                                </optgroup>
+                            <label for="hours_per_week" class="form-label">Hours Available Per Week *</label>
+                            <select class="form-select" id="hours_per_week" name="hours_per_week" required>
+                                <option value="">Select availability...</option>
+                                <option value="1-2 hours" {{ 'selected' if tester and tester.hours_per_week == '1-2 hours' }}>1-2 hours</option>
+                                <option value="3-5 hours" {{ 'selected' if tester and tester.hours_per_week == '3-5 hours' }}>3-5 hours</option>
+                                <option value="5-10 hours" {{ 'selected' if tester and tester.hours_per_week == '5-10 hours' }}>5-10 hours</option>
+                                <option value="10+ hours" {{ 'selected' if tester and tester.hours_per_week == '10+ hours' }}>10+ hours</option>
                             </select>
                         </div>
-                        <div class="col-md-6 mb-3" id="payment_details_container">
-                            <label for="payment_details" class="form-label" id="payment_details_label">Payment Details</label>
-                            <input type="text" class="form-control" id="payment_details" name="payment_details"
-                                   value="{{ tester.payment_details }}" placeholder="PayPal email, account number, etc.">
+                        <div class="col-md-6 mb-3">
+                            <label for="response_time" class="form-label">Response Time for Test Requests *</label>
+                            <select class="form-select" id="response_time" name="response_time" required>
+                                <option value="">Select response time...</option>
+                                <option value="Within 24 hours" {{ 'selected' if tester and tester.response_time == 'Within 24 hours' }}>Within 24 hours</option>
+                                <option value="Within 2-3 days" {{ 'selected' if tester and tester.response_time == 'Within 2-3 days' }}>Within 2-3 days</option>
+                                <option value="Within a week" {{ 'selected' if tester and tester.response_time == 'Within a week' }}>Within a week</option>
+                            </select>
                         </div>
                     </div>
-                    <script>
-                    function toggleCryptoField() {
-                        const method = document.getElementById('payment_method').value;
-                        const label = document.getElementById('payment_details_label');
-                        const input = document.getElementById('payment_details');
-                        const cryptoMethods = ['Bitcoin', 'Ethereum', 'USDC', 'Dogecoin', 'XRP', 'Stellar', 'Dash'];
 
-                        if (cryptoMethods.includes(method)) {
-                            label.textContent = 'Wallet Address';
-                            input.placeholder = 'Your ' + method + ' wallet address';
-                        } else if (method === 'PayPal' || method === 'Venmo') {
-                            label.textContent = 'Payment Details';
-                            input.placeholder = 'Email address';
-                        } else if (method === 'Bank Transfer') {
-                            label.textContent = 'Payment Details';
-                            input.placeholder = 'Account number or routing info';
-                        } else {
-                            label.textContent = 'Payment Details';
-                            input.placeholder = 'PayPal email, account number, etc.';
-                        }
-                    }
-                    // Initialize on page load
-                    document.addEventListener('DOMContentLoaded', toggleCryptoField);
-                    </script>
-                    {% endif %}
+                    <div class="mb-3">
+                        <div class="form-check border rounded p-3 bg-light">
+                            <input class="form-check-input" type="checkbox" name="commit_14_days" value="Yes" id="commit_14" {{ 'checked' if tester and tester.commit_14_days }}>
+                            <label class="form-check-label" for="commit_14">
+                                <strong>I can commit to 14-day testing periods</strong><br>
+                                <small class="text-muted">Important for Google Play closed testing requirements</small>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Section 5: Payment Preferences -->
+                    <hr class="my-4">
+                    <h5 class="mb-4"><i class="bi bi-credit-card me-2"></i>Payment Preferences</h5>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="payment_method" class="form-label">Preferred Payment Method *</label>
+                            <select class="form-select" id="payment_method" name="payment_method" onchange="togglePaymentFields()" required>
+                                <option value="">Select payment method...</option>
+                                <option value="PayPal" {{ 'selected' if tester and tester.payment_method == 'PayPal' }}>PayPal</option>
+                                <option value="Venmo" {{ 'selected' if tester and tester.payment_method == 'Venmo' }}>Venmo</option>
+                                <option value="Crypto" {{ 'selected' if tester and tester.payment_method == 'Crypto' }}>Cryptocurrency</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3" id="crypto_type_wrapper" style="display: none;">
+                            <label for="crypto_type" class="form-label">Cryptocurrency *</label>
+                            <select class="form-select" id="crypto_type" name="crypto_type">
+                                <option value="">Select cryptocurrency...</option>
+                                <option value="Bitcoin" {{ 'selected' if tester and tester.crypto_type == 'Bitcoin' }}>Bitcoin (BTC)</option>
+                                <option value="Ethereum" {{ 'selected' if tester and tester.crypto_type == 'Ethereum' }}>Ethereum (ETH)</option>
+                                <option value="USDC" {{ 'selected' if tester and tester.crypto_type == 'USDC' }}>USD Coin (USDC)</option>
+                                <option value="Dogecoin" {{ 'selected' if tester and tester.crypto_type == 'Dogecoin' }}>Dogecoin (DOGE)</option>
+                                <option value="XRP" {{ 'selected' if tester and tester.crypto_type == 'XRP' }}>Ripple (XRP)</option>
+                                <option value="Stellar" {{ 'selected' if tester and tester.crypto_type == 'Stellar' }}>Stellar (XLM)</option>
+                                <option value="Dash" {{ 'selected' if tester and tester.crypto_type == 'Dash' }}>Dash (DASH)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="payment_handle" class="form-label" id="payment_handle_label">Payment Email/Username *</label>
+                        <input type="text" class="form-control" id="payment_handle" name="payment_handle"
+                               value="{{ tester.payment_handle if tester else '' }}" placeholder="Your PayPal email" required>
+                        <div class="form-text" id="payment_handle_help">Enter your PayPal email address</div>
+                    </div>
+
+                    <!-- Section 6: Additional Information -->
+                    <hr class="my-4">
+                    <h5 class="mb-4"><i class="bi bi-chat-dots me-2"></i>Additional Information</h5>
+
+                    <div class="mb-3">
+                        <label for="source" class="form-label">How Did You Hear About Us?</label>
+                        <select class="form-select" id="source" name="source">
+                            <option value="">Select an option...</option>
+                            <option value="Search" {{ 'selected' if tester and tester.source == 'Search' }}>Search Engine (Google, Bing, etc.)</option>
+                            <option value="Social Media" {{ 'selected' if tester and tester.source == 'Social Media' }}>Social Media</option>
+                            <option value="Referral" {{ 'selected' if tester and tester.source == 'Referral' }}>Referral from a friend/colleague</option>
+                            <option value="Blog/Article" {{ 'selected' if tester and tester.source == 'Blog/Article' }}>Blog or Article</option>
+                            <option value="Job Board" {{ 'selected' if tester and tester.source == 'Job Board' }}>Job Board</option>
+                            <option value="Other" {{ 'selected' if tester and tester.source == 'Other' }}>Other</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="why_interested" class="form-label">Why Are You Interested in Testing Apps? *</label>
+                        <textarea class="form-control" id="why_interested" name="why_interested" rows="3" required
+                                  placeholder="Tell us what motivates you to become a tester">{{ tester.why_interested if tester else '' }}</textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="additional_info" class="form-label">Anything Else You'd Like Us to Know?</label>
+                        <textarea class="form-control" id="additional_info" name="additional_info" rows="3"
+                                  placeholder="Any additional information, skills, or questions">{{ tester.additional_info if tester else '' }}</textarea>
+                    </div>
 
                     <hr class="my-4">
 
@@ -176,7 +375,7 @@
     </div>
 
     <div class="col-lg-4">
-        <div class="card content-card">
+        <div class="card content-card mb-4">
             <div class="card-header">
                 <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i>Tester Program</h5>
             </div>
@@ -200,7 +399,7 @@
                 <h6 class="mt-3">Payment Methods</h6>
                 <p class="small text-muted mb-2">We accept:</p>
                 <ul class="small mb-0">
-                    <li>PayPal, Venmo, Bank Transfer</li>
+                    <li>PayPal, Venmo</li>
                     <li>Crypto: BTC, ETH, USDC, DOGE, XRP, XLM, DASH</li>
                 </ul>
 
@@ -213,6 +412,62 @@
                 </ul>
             </div>
         </div>
+
+        {% if tester %}
+        <div class="card content-card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-person-badge me-2"></i>Tester Status</h5>
+            </div>
+            <div class="card-body">
+                <p class="mb-2"><strong>Status:</strong>
+                    <span class="badge badge-status badge-{{ tester.status }}">{{ tester.status | title }}</span>
+                </p>
+                <p class="mb-2"><strong>Joined:</strong> {{ tester.created_at | datetime }}</p>
+                {% if tester.projects_count %}
+                <p class="mb-0"><strong>Projects:</strong> {{ tester.projects_count }}</p>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
     </div>
 </div>
+
+<script>
+function togglePaymentFields() {
+    const method = document.getElementById('payment_method').value;
+    const cryptoWrapper = document.getElementById('crypto_type_wrapper');
+    const cryptoSelect = document.getElementById('crypto_type');
+    const handleLabel = document.getElementById('payment_handle_label');
+    const handleInput = document.getElementById('payment_handle');
+    const handleHelp = document.getElementById('payment_handle_help');
+
+    if (method === 'Crypto') {
+        cryptoWrapper.style.display = 'block';
+        cryptoSelect.required = true;
+        handleLabel.textContent = 'Wallet Address *';
+        handleInput.placeholder = 'Your cryptocurrency wallet address';
+        handleHelp.textContent = 'Enter your wallet address for the selected cryptocurrency';
+    } else {
+        cryptoWrapper.style.display = 'none';
+        cryptoSelect.required = false;
+
+        if (method === 'PayPal') {
+            handleLabel.textContent = 'PayPal Email *';
+            handleInput.placeholder = 'your.email@example.com';
+            handleHelp.textContent = 'Enter your PayPal email address';
+        } else if (method === 'Venmo') {
+            handleLabel.textContent = 'Venmo Username *';
+            handleInput.placeholder = '@username';
+            handleHelp.textContent = 'Enter your Venmo username (with @)';
+        } else {
+            handleLabel.textContent = 'Payment Email/Username *';
+            handleInput.placeholder = 'Your payment details';
+            handleHelp.textContent = 'Enter your payment information';
+        }
+    }
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', togglePaymentFields);
+</script>
 {% endblock %}
