@@ -761,6 +761,13 @@ class FinancesStore(DataStore):
             invoices = [i for i in invoices if i.get("status") == status.value]
         return invoices
 
+    def get_payments(self, payment_type: PaymentType | None = None) -> list[dict[str, Any]]:
+        """Get payments, optionally filtered by type."""
+        payments = self.query(type="payment")
+        if payment_type:
+            payments = [p for p in payments if p.get("payment_type") == payment_type.value]
+        return sorted(payments, key=lambda x: x.get("created_at", ""), reverse=True)
+
     def get_outstanding_balance(self, client_id: str) -> float:
         """Get total outstanding balance for a client."""
         invoices = self.query(type="invoice", client_id=client_id)
