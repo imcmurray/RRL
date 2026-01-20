@@ -160,4 +160,8 @@ For detailed information on how the system works:
 
 ## License
 
-[PolyForm Noncommercial 1.0.0](LICENSE) — Free for personal use, research, education, and non-profits. Commercial use is not permitted.
+[PolyForm Noncommercial 1.0.0](LICENSE) — Free for personal use, research, education, and non-profits.
+
+### Commercial Use
+
+Want to use this in your business? Commercial licenses are available. Contact [ian@rinserepeat.io](mailto:ian@rinserepeat.io) for licensing options.
