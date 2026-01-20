@@ -440,3 +440,146 @@ main {
         border: 1px solid #dee2e6;
     }
 }
+
+/* =============================================================================
+   DARK THEME STYLES
+   Bootstrap 5.3+ dark mode with custom component overrides
+   ============================================================================= */
+
+[data-bs-theme="dark"] {
+    --rrl-bg-body: #212529;
+    --rrl-bg-card: #2b3035;
+    --rrl-bg-elevated: #343a40;
+    --rrl-border-color: #495057;
+    --rrl-text-muted: #adb5bd;
+}
+
+[data-bs-theme="dark"] body {
+    background-color: var(--rrl-bg-body);
+}
+
+/* Cards in dark mode */
+[data-bs-theme="dark"] .stats-card,
+[data-bs-theme="dark"] .content-card,
+[data-bs-theme="dark"] .form-card {
+    background-color: var(--rrl-bg-card);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+}
+
+[data-bs-theme="dark"] .stats-card:hover {
+    box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+}
+
+[data-bs-theme="dark"] .content-card .card-header {
+    background-color: var(--rrl-bg-elevated);
+    border-bottom-color: var(--rrl-border-color);
+}
+
+[data-bs-theme="dark"] .stats-card .stat-label {
+    color: var(--rrl-text-muted);
+}
+
+/* Tables in dark mode */
+[data-bs-theme="dark"] .table-container {
+    background: var(--rrl-bg-card);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+}
+
+[data-bs-theme="dark"] .table-container .table thead {
+    background-color: var(--rrl-bg-elevated);
+}
+
+[data-bs-theme="dark"] .table-container .table thead th {
+    border-bottom-color: var(--rrl-border-color);
+    color: var(--rrl-text-muted);
+}
+
+/* Quick actions in dark mode */
+[data-bs-theme="dark"] .quick-action {
+    background: var(--rrl-bg-card);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    color: #fff;
+}
+
+[data-bs-theme="dark"] .quick-action:hover {
+    box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+    color: #fff;
+}
+
+/* Detail sections in dark mode */
+[data-bs-theme="dark"] .detail-header,
+[data-bs-theme="dark"] .detail-section {
+    background: var(--rrl-bg-card);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+}
+
+[data-bs-theme="dark"] .detail-section h5 {
+    border-bottom-color: var(--rrl-border-color);
+}
+
+/* Notes in dark mode */
+[data-bs-theme="dark"] .note-item {
+    background-color: var(--rrl-bg-elevated);
+}
+
+[data-bs-theme="dark"] .note-item .note-meta {
+    color: var(--rrl-text-muted);
+}
+
+/* Decision items in dark mode */
+[data-bs-theme="dark"] .decision-item {
+    background: var(--rrl-bg-elevated);
+}
+
+/* Report preview in dark mode */
+[data-bs-theme="dark"] .report-preview {
+    background: var(--rrl-bg-elevated);
+    color: #e9ecef;
+}
+
+/* Activity feed in dark mode */
+[data-bs-theme="dark"] .activity-feed li {
+    border-bottom-color: var(--rrl-border-color);
+}
+
+[data-bs-theme="dark"] .activity-feed .activity-time {
+    color: var(--rrl-text-muted);
+}
+
+/* Finance metrics in dark mode */
+[data-bs-theme="dark"] .finance-metric .label {
+    color: var(--rrl-text-muted);
+}
+
+/* Form labels in dark mode */
+[data-bs-theme="dark"] .form-label {
+    color: #e9ecef;
+}
+
+/* Footer in dark mode */
+[data-bs-theme="dark"] .footer {
+    background-color: var(--rrl-bg-card) !important;
+}
+
+/* Agent badges - keep colors consistent in dark mode */
+[data-bs-theme="dark"] .agent-badge {
+    background-color: var(--rrl-bg-elevated);
+}
+
+/* HTMX loading overlay in dark mode */
+[data-bs-theme="dark"] .htmx-loading::after {
+    background: rgba(33, 37, 41, 0.7);
+}
+
+/* Theme toggle button styling */
+#theme-toggle {
+    cursor: pointer;
+}
+
+#theme-toggle:hover {
+    background-color: rgba(0,0,0,0.05);
+}
+
+[data-bs-theme="dark"] #theme-toggle:hover {
+    background-color: rgba(255,255,255,0.1);
+}
