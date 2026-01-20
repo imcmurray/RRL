@@ -74,11 +74,37 @@
                         <div class="form-text">What this agent tracks and reports on (one per line)</div>
                     </div>
 
-                    <div class="mb-4">
+                    <div class="mb-3">
                         <label for="custom_instructions" class="form-label">Custom Instructions</label>
-                        <textarea class="form-control" id="custom_instructions" name="custom_instructions" rows="4"
+                        <textarea class="form-control" id="custom_instructions" name="custom_instructions" rows="3"
                                   placeholder="Additional context or instructions for AI meetings...">{{ customizations.custom_instructions }}</textarea>
                         <div class="form-text">Extra context provided to the AI during meetings (e.g., "Focus on bootstrapped startups")</div>
+                    </div>
+
+                    <hr class="my-4">
+                    <h6 class="mb-3"><i class="bi bi-diagram-3 me-2"></i>Reporting Structure</h6>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="reports_to" class="form-label">Reports To</label>
+                            <input type="text" class="form-control" id="reports_to" name="reports_to"
+                                   value="{{ customizations.reports_to }}" placeholder="e.g., CEO, Architect">
+                            <div class="form-text">Who this agent reports to in your organization</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="direct_reports" class="form-label">Direct Reports</label>
+                            <input type="text" class="form-control" id="direct_reports" name="direct_reports"
+                                   value="{{ customizations.direct_reports | join(', ') if customizations.direct_reports else '' }}"
+                                   placeholder="e.g., CFO, CITO, Sales">
+                            <div class="form-text">Comma-separated list of agents who report to this one</div>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="collaborates_with" class="form-label">Collaborates With</label>
+                        <textarea class="form-control" id="collaborates_with" name="collaborates_with" rows="2"
+                                  placeholder="One collaboration per line (e.g., CFO for pricing)">{{ customizations.collaborates_with | join('\n') if customizations.collaborates_with else '' }}</textarea>
+                        <div class="form-text">Key collaboration relationships (one per line)</div>
                     </div>
 
                     <div class="d-flex gap-2">

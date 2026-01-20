@@ -22,6 +22,7 @@ from src.data_store import (
     get_agent_requests_store,
     get_settings_store,
     get_agent_customizations_store,
+    get_agent_chat_store,
     IdeaStatus,
     TesterStatus,
     ProjectStatus,
@@ -33,7 +34,8 @@ from src.data_store import (
     AGENT_DOCUMENTATION,
 )
 from src import reports
-from src.utils import query_decisions, list_meetings, load_file
+from src.utils import query_decisions, list_meetings, load_file, load_context
+from src.agent import Agent, AgentRegistry
 import config
 
 app = Flask(__name__)
@@ -1867,6 +1869,17 @@ def agent_settings(agent_id):
         metrics_text = request.form.get('metrics', '')
         updates['metrics'] = [m.strip() for m in metrics_text.split('\n') if m.strip()]
 
+        # Handle reporting structure
+        updates['reports_to'] = request.form.get('reports_to', '').strip()
+
+        # Handle direct reports (comma-separated)
+        direct_reports_text = request.form.get('direct_reports', '')
+        updates['direct_reports'] = [r.strip() for r in direct_reports_text.split(',') if r.strip()]
+
+        # Handle collaborates_with (textarea, one per line)
+        collaborates_text = request.form.get('collaborates_with', '')
+        updates['collaborates_with'] = [c.strip() for c in collaborates_text.split('\n') if c.strip()]
+
         customizations_store.update_agent(agent_id, updates)
         flash(f'{agent["name"]} settings updated successfully!', 'success')
         return redirect(url_for('agent_portal', agent_id=agent_id, tab='settings'))
@@ -1897,6 +1910,155 @@ def agent_settings_reset(agent_id):
     agent = AGENT_INFO[agent_id]
     flash(f'{agent["name"]} settings reset to defaults.', 'success')
     return redirect(url_for('agent_portal', agent_id=agent_id, tab='settings'))
+
+
+# =============================================================================
+# AGENT CHAT
+# =============================================================================
+
+@app.route('/agents/<agent_id>/chat')
+def agent_chat(agent_id):
+    """Start or continue a chat with an agent."""
+    if agent_id not in AGENT_INFO:
+        flash('Agent not found', 'error')
+        return redirect(url_for('agents_list'))
+
+    agent = AGENT_INFO[agent_id]
+    chat_store = get_agent_chat_store()
+    customizations_store = get_agent_customizations_store()
+    customizations = customizations_store.get_agent(agent_id)
+
+    # Check for existing session or create new one
+    session_id = request.args.get('session')
+    if session_id:
+        session = chat_store.get_by_id(session_id)
+        if not session or session.get('agent_id') != agent_id:
+            session = None
+    else:
+        session = None
+
+    if not session:
+        # Create new session
+        topic = request.args.get('topic', '')
+        session = chat_store.create_session(agent_id, topic)
+
+    # Get recent sessions for this agent
+    recent_sessions = chat_store.get_by_agent(agent_id, active_only=False)[:5]
+
+    return render_template('agents/chat.html',
+        agent=agent,
+        session=session,
+        customizations=customizations,
+        recent_sessions=recent_sessions,
+        all_agents=AGENT_INFO
+    )
+
+
+@app.route('/agents/<agent_id>/chat/<session_id>/send', methods=['POST'])
+def agent_chat_send(agent_id, session_id):
+    """Send a message and get a response from the agent."""
+    if agent_id not in AGENT_INFO:
+        return jsonify({'error': 'Agent not found'}), 404
+
+    chat_store = get_agent_chat_store()
+    session = chat_store.get_by_id(session_id)
+
+    if not session or session.get('agent_id') != agent_id:
+        return jsonify({'error': 'Session not found'}), 404
+
+    message = request.form.get('message', '').strip()
+    if not message:
+        return jsonify({'error': 'Message is required'}), 400
+
+    # Add user message to session
+    chat_store.add_message(session_id, 'user', message)
+
+    # Get agent response
+    try:
+        # Get customizations for custom instructions
+        customizations_store = get_agent_customizations_store()
+        customizations = customizations_store.get_agent(agent_id)
+
+        # Build context
+        context = load_context(['company'])
+        if customizations.get('custom_instructions'):
+            context += f"\n\n## Custom Instructions\n\n{customizations['custom_instructions']}"
+
+        # For CEO, add action context and system state
+        if agent_id == 'ceo':
+            from src.ceo_actions import get_ceo_action_context, get_system_state_context, parse_actions_from_response
+            context += "\n\n" + get_ceo_action_context()
+            context += "\n\n" + get_system_state_context()
+
+        # Build prior discussion from session messages
+        prior_discussion = ""
+        for msg in session.get('messages', []):
+            role_label = "You (Architect)" if msg['role'] == 'user' else AGENT_INFO[agent_id]['name']
+            prior_discussion += f"**{role_label}:** {msg['content']}\n\n"
+
+        # Get agent instance and respond
+        agent = Agent(agent_id)
+        response = agent.respond(
+            prompt=message,
+            context=context,
+            prior_discussion=prior_discussion,
+        )
+
+        # Add assistant response to session
+        chat_store.add_message(session_id, 'assistant', response)
+
+        # Parse any actions from CEO response
+        actions = []
+        if agent_id == 'ceo':
+            actions = parse_actions_from_response(response)
+
+        return jsonify({
+            'success': True,
+            'response': response,
+            'timestamp': datetime.now().isoformat(),
+            'actions': actions,
+        })
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/agents/<agent_id>/chat/<session_id>/end', methods=['POST'])
+def agent_chat_end(agent_id, session_id):
+    """End a chat session."""
+    chat_store = get_agent_chat_store()
+    session = chat_store.get_by_id(session_id)
+
+    if not session or session.get('agent_id') != agent_id:
+        flash('Session not found', 'error')
+        return redirect(url_for('agent_portal', agent_id=agent_id))
+
+    chat_store.end_session(session_id)
+    flash('Chat session ended.', 'success')
+    return redirect(url_for('agent_portal', agent_id=agent_id))
+
+
+@app.route('/agents/ceo/chat/execute-action', methods=['POST'])
+def ceo_execute_action():
+    """Execute a confirmed CEO action."""
+    from src.ceo_actions import CEOActionExecutor
+
+    action_type = request.form.get('action_type')
+    parameters_json = request.form.get('parameters', '{}')
+
+    if not action_type:
+        return jsonify({'success': False, 'error': 'action_type is required'}), 400
+
+    try:
+        import json
+        parameters = json.loads(parameters_json)
+    except json.JSONDecodeError:
+        return jsonify({'success': False, 'error': 'Invalid parameters JSON'}), 400
+
+    executor = CEOActionExecutor()
+    result = executor.execute(action_type, parameters)
+
+    return jsonify(result)
 
 
 @app.route('/agents/<agent_id>/request/new', methods=['GET', 'POST'])

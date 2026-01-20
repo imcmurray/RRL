@@ -1,0 +1,459 @@
+{% extends "base.html" %}
+
+{% block title %}Chat with {{ agent.name }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('agents_list') }}">Agent Portals</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('agent_portal', agent_id=agent.id) }}">{{ agent.role }}</a></li>
+                <li class="breadcrumb-item active">Chat</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Chat Area -->
+    <div class="col-lg-8">
+        <div class="card content-card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center">
+                    <span class="agent-badge agent-{{ agent.id }} me-2">{{ customizations.role_title or agent.role }}</span>
+                    <h5 class="mb-0">Chat with {{ customizations.display_name or agent.name }}</h5>
+                    {% if agent.id == 'ceo' %}
+                    <span class="badge bg-success ms-2"><i class="bi bi-lightning me-1"></i>Can Take Actions</span>
+                    {% endif %}
+                </div>
+                <div>
+                    <form action="{{ url_for('agent_chat_end', agent_id=agent.id, session_id=session.id) }}" method="POST" class="d-inline">
+                        <button type="submit" class="btn btn-sm btn-outline-secondary">
+                            <i class="bi bi-box-arrow-right me-1"></i>End Chat
+                        </button>
+                    </form>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <!-- Messages Container -->
+                <div id="chat-messages" class="p-3" style="height: 450px; overflow-y: auto; background: var(--bs-body-bg);">
+                    {% if session.messages %}
+                        {% for msg in session.messages %}
+                        <div class="chat-message mb-3 {% if msg.role == 'user' %}text-end{% endif %}">
+                            <div class="d-inline-block p-3 rounded {% if msg.role == 'user' %}bg-primary text-white{% else %}bg-light{% endif %}" style="max-width: 80%;">
+                                <div class="fw-bold small mb-1">
+                                    {% if msg.role == 'user' %}
+                                    <i class="bi bi-person-circle me-1"></i>You (Architect)
+                                    {% else %}
+                                    <i class="bi bi-robot me-1"></i>{{ customizations.display_name or agent.name }}
+                                    {% endif %}
+                                </div>
+                                <div class="chat-content">{{ msg.content | replace('\n\n', '</p><p>') | replace('\n', '<br>') | safe }}</div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                    <div id="welcome-message" class="text-center py-5">
+                        <i class="bi bi-chat-dots display-4 text-muted mb-3"></i>
+                        <h5>Start a conversation with {{ customizations.display_name or agent.name }}</h5>
+                        <p class="text-muted">
+                            {% if agent.id == 'ceo' %}
+                            As your CEO, I can discuss strategy and take action on your behalf.
+                            Tell me what changes you'd like to make to the team or company settings.
+                            {% else %}
+                            Ask questions, discuss strategy, or get advice on their area of expertise.
+                            {% endif %}
+                        </p>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Typing Indicator -->
+                <div id="typing-indicator" class="px-3 py-2 border-top d-none">
+                    <div class="d-flex align-items-center text-muted">
+                        <div class="spinner-border spinner-border-sm me-2" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <span>{{ customizations.display_name or agent.name }} is typing...</span>
+                    </div>
+                </div>
+
+                <!-- Pending Actions Container -->
+                <div id="pending-actions" class="d-none border-top bg-warning bg-opacity-10">
+                    <div class="p-3">
+                        <h6 class="mb-2"><i class="bi bi-lightning me-2"></i>Proposed Actions</h6>
+                        <div id="actions-list"></div>
+                    </div>
+                </div>
+
+                <!-- Message Input -->
+                <div class="p-3 border-top">
+                    <form id="chat-form" class="d-flex gap-2">
+                        <input type="text" class="form-control" id="message-input"
+                               placeholder="Type your message..." autocomplete="off" autofocus>
+                        <button type="submit" class="btn btn-primary" id="send-btn">
+                            <i class="bi bi-send"></i>
+                        </button>
+                    </form>
+                    <div class="form-text mt-2">
+                        <i class="bi bi-info-circle me-1"></i>
+                        {% if agent.id == 'ceo' %}
+                        The CEO can take actions on your behalf. All proposed changes require your confirmation.
+                        {% else %}
+                        Press Enter to send. The AI will respond based on company context and the agent's role.
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+        {% if agent.id == 'ceo' %}
+        <!-- CEO Powers Card -->
+        <div class="card content-card mb-4 border-success">
+            <div class="card-header bg-success bg-opacity-10">
+                <h5 class="mb-0"><i class="bi bi-lightning me-2"></i>CEO Powers</h5>
+            </div>
+            <div class="card-body">
+                <p class="small text-muted mb-3">The CEO can take these actions on your behalf:</p>
+                <ul class="list-unstyled small mb-0">
+                    <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i>Update agent settings & instructions</li>
+                    <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i>Change company settings</li>
+                    <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i>Create feature requests for agents</li>
+                    <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i>Approve/reject pending requests</li>
+                    <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i>Update idea statuses</li>
+                    <li class="mb-0"><i class="bi bi-check-circle text-success me-2"></i>Broadcast instructions to team</li>
+                </ul>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Agent Info -->
+        <div class="card content-card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i>About This Agent</h5>
+            </div>
+            <div class="card-body">
+                <p class="small">{{ customizations.description or agent.description }}</p>
+                {% if customizations.custom_instructions %}
+                <hr>
+                <h6 class="small text-muted mb-2">Custom Instructions</h6>
+                <p class="small mb-0">{{ customizations.custom_instructions }}</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Conversation Starters -->
+        <div class="card content-card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-lightbulb me-2"></i>Conversation Starters</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    {% if agent.id == 'ceo' %}
+                    <button class="btn btn-outline-secondary btn-sm text-start starter-btn" data-message="I want all agents to focus on cost efficiency. Can you update their instructions?">
+                        <i class="bi bi-arrow-right me-2"></i>Set team-wide focus
+                    </button>
+                    <button class="btn btn-outline-secondary btn-sm text-start starter-btn" data-message="What changes would you recommend to improve our team structure?">
+                        <i class="bi bi-arrow-right me-2"></i>Team structure advice
+                    </button>
+                    <button class="btn btn-outline-secondary btn-sm text-start starter-btn" data-message="Review our pending feature requests and tell me which ones you think we should approve.">
+                        <i class="bi bi-arrow-right me-2"></i>Review pending requests
+                    </button>
+                    <button class="btn btn-outline-secondary btn-sm text-start starter-btn" data-message="Update the CFO's custom instructions to focus on cash flow management for a bootstrapped startup.">
+                        <i class="bi bi-arrow-right me-2"></i>Update agent instructions
+                    </button>
+                    {% elif agent.id == 'cfo' %}
+                    <button class="btn btn-outline-secondary btn-sm text-start starter-btn" data-message="How should we structure our pricing?">
+                        <i class="bi bi-arrow-right me-2"></i>Pricing strategy
+                    </button>
+                    <button class="btn btn-outline-secondary btn-sm text-start starter-btn" data-message="What financial metrics should I track?">
+                        <i class="bi bi-arrow-right me-2"></i>Key financial metrics
+                    </button>
+                    <button class="btn btn-outline-secondary btn-sm text-start starter-btn" data-message="How can we improve our cash flow?">
+                        <i class="bi bi-arrow-right me-2"></i>Cash flow improvements
+                    </button>
+                    {% elif agent.id == 'cito' %}
+                    <button class="btn btn-outline-secondary btn-sm text-start starter-btn" data-message="What technology stack should we use for a new project?">
+                        <i class="bi bi-arrow-right me-2"></i>Tech stack recommendations
+                    </button>
+                    <button class="btn btn-outline-secondary btn-sm text-start starter-btn" data-message="How should we approach technical debt?">
+                        <i class="bi bi-arrow-right me-2"></i>Technical debt strategy
+                    </button>
+                    <button class="btn btn-outline-secondary btn-sm text-start starter-btn" data-message="What security considerations should we have?">
+                        <i class="bi bi-arrow-right me-2"></i>Security considerations
+                    </button>
+                    {% else %}
+                    <button class="btn btn-outline-secondary btn-sm text-start starter-btn" data-message="What are your main focus areas right now?">
+                        <i class="bi bi-arrow-right me-2"></i>Current focus areas
+                    </button>
+                    <button class="btn btn-outline-secondary btn-sm text-start starter-btn" data-message="What challenges are you facing?">
+                        <i class="bi bi-arrow-right me-2"></i>Current challenges
+                    </button>
+                    <button class="btn btn-outline-secondary btn-sm text-start starter-btn" data-message="How can I help you be more effective?">
+                        <i class="bi bi-arrow-right me-2"></i>How can I help?
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Sessions -->
+        {% if recent_sessions %}
+        <div class="card content-card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-clock-history me-2"></i>Recent Chats</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled mb-0 small">
+                    {% for sess in recent_sessions %}
+                    <li class="mb-2 pb-2 {% if not loop.last %}border-bottom{% endif %}">
+                        <a href="{{ url_for('agent_chat', agent_id=agent.id, session=sess.id) }}"
+                           class="text-decoration-none {% if sess.id == session.id %}fw-bold{% endif %}">
+                            <i class="bi bi-chat-left-text me-1"></i>
+                            {% if sess.topic %}{{ sess.topic }}{% else %}Chat {{ loop.revindex }}{% endif %}
+                        </a>
+                        <br>
+                        <span class="text-muted">
+                            {{ sess.started_at | datetime }}
+                            {% if not sess.is_active %}<span class="badge bg-secondary ms-1">Ended</span>{% endif %}
+                        </span>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('chat-form');
+    const input = document.getElementById('message-input');
+    const messagesContainer = document.getElementById('chat-messages');
+    const typingIndicator = document.getElementById('typing-indicator');
+    const pendingActionsContainer = document.getElementById('pending-actions');
+    const actionsList = document.getElementById('actions-list');
+    const sendBtn = document.getElementById('send-btn');
+    const welcomeMessage = document.getElementById('welcome-message');
+    const agentName = "{{ customizations.display_name or agent.name }}";
+    const agentId = "{{ agent.id }}";
+    const sendUrl = "{{ url_for('agent_chat_send', agent_id=agent.id, session_id=session.id) }}";
+    const executeUrl = "{{ url_for('ceo_execute_action') }}";
+
+    // Scroll to bottom on load
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+    // Handle form submission
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const message = input.value.trim();
+        if (!message) return;
+
+        // Disable input while processing
+        input.disabled = true;
+        sendBtn.disabled = true;
+
+        // Remove welcome message if present
+        if (welcomeMessage) {
+            welcomeMessage.remove();
+        }
+
+        // Hide any pending actions from previous response
+        pendingActionsContainer.classList.add('d-none');
+        actionsList.innerHTML = '';
+
+        // Add user message to UI
+        addMessage('user', message);
+        input.value = '';
+
+        // Show typing indicator
+        typingIndicator.classList.remove('d-none');
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+        try {
+            const formData = new FormData();
+            formData.append('message', message);
+
+            const response = await fetch(sendUrl, {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                // Clean the response by removing action blocks from display
+                let displayResponse = data.response;
+                displayResponse = displayResponse.replace(/\[ACTION:\s*\w+\]\s*\{[^}]+\}\s*\[\/ACTION\]/g, '');
+                displayResponse = displayResponse.trim();
+
+                addMessage('assistant', displayResponse);
+
+                // Show actions if any (CEO only)
+                if (data.actions && data.actions.length > 0) {
+                    showPendingActions(data.actions);
+                }
+            } else {
+                addMessage('system', 'Error: ' + (data.error || 'Failed to get response'));
+            }
+        } catch (error) {
+            addMessage('system', 'Error: Failed to connect to server');
+        }
+
+        // Hide typing indicator and re-enable input
+        typingIndicator.classList.add('d-none');
+        input.disabled = false;
+        sendBtn.disabled = false;
+        input.focus();
+    });
+
+    // Conversation starters
+    document.querySelectorAll('.starter-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            input.value = this.dataset.message;
+            input.focus();
+        });
+    });
+
+    function addMessage(role, content) {
+        const div = document.createElement('div');
+        div.className = 'chat-message mb-3' + (role === 'user' ? ' text-end' : '');
+
+        const inner = document.createElement('div');
+        inner.className = 'd-inline-block p-3 rounded ' +
+            (role === 'user' ? 'bg-primary text-white' :
+             role === 'system' ? 'bg-danger text-white' :
+             role === 'action-result' ? 'bg-success text-white' : 'bg-light');
+        inner.style.maxWidth = '80%';
+
+        const header = document.createElement('div');
+        header.className = 'fw-bold small mb-1';
+        if (role === 'user') {
+            header.innerHTML = '<i class="bi bi-person-circle me-1"></i>You (Architect)';
+        } else if (role === 'system') {
+            header.innerHTML = '<i class="bi bi-exclamation-triangle me-1"></i>System';
+        } else if (role === 'action-result') {
+            header.innerHTML = '<i class="bi bi-check-circle me-1"></i>Action Executed';
+        } else {
+            header.innerHTML = '<i class="bi bi-robot me-1"></i>' + agentName;
+        }
+
+        const body = document.createElement('div');
+        body.className = 'chat-content';
+        // Convert newlines to HTML
+        body.innerHTML = content.replace(/\n\n/g, '</p><p>').replace(/\n/g, '<br>');
+
+        inner.appendChild(header);
+        inner.appendChild(body);
+        div.appendChild(inner);
+        messagesContainer.appendChild(div);
+
+        // Scroll to bottom
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+
+    function showPendingActions(actions) {
+        actionsList.innerHTML = '';
+
+        actions.forEach((action, index) => {
+            const actionCard = document.createElement('div');
+            actionCard.className = 'card mb-2 border-warning';
+            actionCard.innerHTML = `
+                <div class="card-body p-2">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <strong class="small">${formatActionType(action.action_type)}</strong>
+                            <pre class="mb-0 mt-1 small bg-light p-2 rounded" style="font-size: 0.75rem; max-height: 100px; overflow-y: auto;">${JSON.stringify(action.parameters, null, 2)}</pre>
+                        </div>
+                        <div class="ms-2">
+                            <button class="btn btn-sm btn-success confirm-action-btn" data-index="${index}">
+                                <i class="bi bi-check-lg"></i> Confirm
+                            </button>
+                            <button class="btn btn-sm btn-outline-secondary dismiss-action-btn" data-index="${index}">
+                                <i class="bi bi-x"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            actionsList.appendChild(actionCard);
+
+            // Store action data
+            actionCard.dataset.actionType = action.action_type;
+            actionCard.dataset.parameters = JSON.stringify(action.parameters);
+        });
+
+        // Add event listeners
+        document.querySelectorAll('.confirm-action-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const card = this.closest('.card');
+                executeAction(card.dataset.actionType, card.dataset.parameters, card);
+            });
+        });
+
+        document.querySelectorAll('.dismiss-action-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const card = this.closest('.card');
+                card.remove();
+                if (actionsList.children.length === 0) {
+                    pendingActionsContainer.classList.add('d-none');
+                }
+            });
+        });
+
+        pendingActionsContainer.classList.remove('d-none');
+    }
+
+    async function executeAction(actionType, parameters, cardElement) {
+        const btn = cardElement.querySelector('.confirm-action-btn');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+
+        try {
+            const formData = new FormData();
+            formData.append('action_type', actionType);
+            formData.append('parameters', parameters);
+
+            const response = await fetch(executeUrl, {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                addMessage('action-result', `✓ ${data.result.message || 'Action completed successfully'}`);
+                cardElement.remove();
+
+                if (actionsList.children.length === 0) {
+                    pendingActionsContainer.classList.add('d-none');
+                }
+            } else {
+                addMessage('system', 'Action failed: ' + (data.error || 'Unknown error'));
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-check-lg"></i> Retry';
+            }
+        } catch (error) {
+            addMessage('system', 'Action failed: Network error');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-check-lg"></i> Retry';
+        }
+    }
+
+    function formatActionType(actionType) {
+        return actionType
+            .split('_')
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(' ');
+    }
+});
+</script>
+{% endblock %}
