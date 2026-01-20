@@ -1984,6 +1984,12 @@ def agent_chat_send(agent_id, session_id):
         if customizations.get('custom_instructions'):
             context += f"\n\n## Custom Instructions\n\n{customizations['custom_instructions']}"
 
+        # For CEO, add action context and system state
+        if agent_id == 'ceo':
+            from src.ceo_actions import get_ceo_action_context, get_system_state_context, parse_actions_from_response
+            context += "\n\n" + get_ceo_action_context()
+            context += "\n\n" + get_system_state_context()
+
         # Build prior discussion from session messages
         prior_discussion = ""
         for msg in session.get('messages', []):
@@ -2001,10 +2007,16 @@ def agent_chat_send(agent_id, session_id):
         # Add assistant response to session
         chat_store.add_message(session_id, 'assistant', response)
 
+        # Parse any actions from CEO response
+        actions = []
+        if agent_id == 'ceo':
+            actions = parse_actions_from_response(response)
+
         return jsonify({
             'success': True,
             'response': response,
             'timestamp': datetime.now().isoformat(),
+            'actions': actions,
         })
 
     except Exception as e:
@@ -2024,6 +2036,29 @@ def agent_chat_end(agent_id, session_id):
     chat_store.end_session(session_id)
     flash('Chat session ended.', 'success')
     return redirect(url_for('agent_portal', agent_id=agent_id))
+
+
+@app.route('/agents/ceo/chat/execute-action', methods=['POST'])
+def ceo_execute_action():
+    """Execute a confirmed CEO action."""
+    from src.ceo_actions import CEOActionExecutor
+
+    action_type = request.form.get('action_type')
+    parameters_json = request.form.get('parameters', '{}')
+
+    if not action_type:
+        return jsonify({'success': False, 'error': 'action_type is required'}), 400
+
+    try:
+        import json
+        parameters = json.loads(parameters_json)
+    except json.JSONDecodeError:
+        return jsonify({'success': False, 'error': 'Invalid parameters JSON'}), 400
+
+    executor = CEOActionExecutor()
+    result = executor.execute(action_type, parameters)
+
+    return jsonify(result)
 
 
 @app.route('/agents/<agent_id>/request/new', methods=['GET', 'POST'])
