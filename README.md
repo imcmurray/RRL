@@ -160,4 +160,4 @@ For detailed information on how the system works:
 
 ## License
 
-MIT License - See LICENSE file for details.
+[PolyForm Noncommercial 1.0.0](LICENSE) — Free for personal use, research, education, and non-profits. Commercial use is not permitted.
