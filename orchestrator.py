@@ -1073,9 +1073,40 @@ def setup(skip_api: bool, launch_web: bool):
             console.print(f"  [dim]Exists:[/dim] {dir_path}")
     console.print()
 
-    # Step 2: Check API key
+    # Step 2: Check dependencies
+    console.print("[bold]Step 2: Checking dependencies...[/bold]")
+    missing_deps = []
+
+    try:
+        import flask
+        console.print(f"  [green]Found:[/green] Flask {flask.__version__}")
+    except ImportError:
+        missing_deps.append("flask")
+        console.print("  [yellow]Missing:[/yellow] Flask")
+
+    try:
+        import anthropic
+        console.print(f"  [green]Found:[/green] Anthropic SDK")
+    except ImportError:
+        missing_deps.append("anthropic")
+        console.print("  [yellow]Missing:[/yellow] Anthropic SDK")
+
+    if missing_deps:
+        console.print()
+        install = Prompt.ask(
+            f"  Install missing dependencies ({', '.join(missing_deps)})?",
+            choices=["y", "n"],
+            default="y",
+        )
+        if install == "y":
+            console.print("  [dim]Installing...[/dim]")
+            subprocess.run([sys.executable, "-m", "pip", "install"] + missing_deps, check=True)
+            console.print("  [green]Dependencies installed![/green]")
+    console.print()
+
+    # Step 3: Check API key
     if not skip_api:
-        console.print("[bold]Step 2: API Key Configuration...[/bold]")
+        console.print("[bold]Step 3: API Key Configuration...[/bold]")
         api_key = os.environ.get("ANTHROPIC_API_KEY", "")
 
         if api_key:
@@ -1098,11 +1129,11 @@ def setup(skip_api: bool, launch_web: bool):
                 os.environ["ANTHROPIC_API_KEY"] = new_key
                 console.print("  [green]API key set for this session[/green]")
     else:
-        console.print("[bold]Step 2: API Key Configuration...[/bold] [dim](skipped)[/dim]")
+        console.print("[bold]Step 3: API Key Configuration...[/bold] [dim](skipped)[/dim]")
     console.print()
 
-    # Step 3: Verify agents
-    console.print("[bold]Step 3: Verifying agent prompts...[/bold]")
+    # Step 4: Verify agents
+    console.print("[bold]Step 4: Verifying agent prompts...[/bold]")
     registry = AgentRegistry()
     available = registry.list_available()
     console.print(f"  [green]Found {len(available)} agents:[/green]")
@@ -1117,8 +1148,8 @@ def setup(skip_api: bool, launch_web: bool):
     console.print(f"    Operations: {ops_count}")
     console.print()
 
-    # Step 4: Check data stores
-    console.print("[bold]Step 4: Initializing data stores...[/bold]")
+    # Step 5: Check data stores
+    console.print("[bold]Step 5: Initializing data stores...[/bold]")
     from src.data_store import (
         get_ideas_store, get_testers_store, get_clients_store,
         get_projects_store, get_finances_store, get_agent_requests_store
