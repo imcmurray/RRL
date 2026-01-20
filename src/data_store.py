@@ -915,6 +915,274 @@ class AgentRequestsStore(DataStore):
 
 
 # =============================================================================
+# SETTINGS STORE
+# =============================================================================
+
+# Industry presets with agent role descriptions
+INDUSTRY_PRESETS = {
+    "software_development": {
+        "name": "Software Development",
+        "description": "App development studio building mobile and web applications",
+        "default_company_name": "Rinse Repeat Labs",
+        "default_tagline": "App Development Studio",
+        "agent_roles": {
+            "ceo": "Strategic leadership and company direction for the development studio",
+            "cfo": "Financial planning, pricing strategies, and project budgeting",
+            "cito": "Technical strategy, architecture decisions, and technology evaluation",
+            "sales": "Client acquisition, project scoping, and partnership development",
+            "legal": "Contracts, IP protection, and software licensing compliance",
+            "dev_lead": "Engineering leadership, code quality, and technical implementation",
+            "design_lead": "UI/UX design, design systems, and user experience",
+            "qa_lead": "Quality assurance, testing strategy, and beta tester program",
+            "pm": "Project coordination, sprint planning, and delivery management",
+            "customer_success": "Client relationships, onboarding, and satisfaction",
+            "marketing": "App store optimization, growth marketing, and brand awareness",
+            "support": "Customer support, documentation, and issue resolution",
+        }
+    },
+    "marketing_agency": {
+        "name": "Marketing Agency",
+        "description": "Full-service marketing agency handling campaigns and brand strategy",
+        "default_company_name": "Your Agency Name",
+        "default_tagline": "Marketing Agency",
+        "agent_roles": {
+            "ceo": "Agency leadership, vision, and key client relationships",
+            "cfo": "Agency finances, retainer management, and profitability",
+            "cito": "Marketing technology stack, automation, and analytics platforms",
+            "sales": "New business development, pitches, and proposal creation",
+            "legal": "Client contracts, media rights, and compliance",
+            "dev_lead": "Website development, landing pages, and technical marketing",
+            "design_lead": "Creative direction, brand identity, and visual campaigns",
+            "qa_lead": "Campaign quality checks, A/B testing, and performance review",
+            "pm": "Campaign management, timelines, and resource allocation",
+            "customer_success": "Account management and client retention",
+            "marketing": "Strategy development, media planning, and execution",
+            "support": "Client communications and deliverable management",
+        }
+    },
+    "consulting_firm": {
+        "name": "Consulting Firm",
+        "description": "Professional services firm providing business consulting",
+        "default_company_name": "Your Firm Name",
+        "default_tagline": "Business Consulting",
+        "agent_roles": {
+            "ceo": "Firm leadership, thought leadership, and strategic partnerships",
+            "cfo": "Engagement pricing, utilization tracking, and firm finances",
+            "cito": "Knowledge management, research tools, and data analytics",
+            "sales": "Business development, proposal writing, and client acquisition",
+            "legal": "Engagement letters, liability, and regulatory compliance",
+            "dev_lead": "Internal tools, automation, and technical solutions",
+            "design_lead": "Presentation design, report formatting, and brand materials",
+            "qa_lead": "Deliverable quality, methodology adherence, and peer review",
+            "pm": "Engagement management, resource planning, and timelines",
+            "customer_success": "Client relationship management and renewals",
+            "marketing": "Thought leadership, events, and firm positioning",
+            "support": "Research support, scheduling, and administrative coordination",
+        }
+    },
+    "ecommerce_business": {
+        "name": "E-Commerce Business",
+        "description": "Online retail business selling products directly to consumers",
+        "default_company_name": "Your Store Name",
+        "default_tagline": "E-Commerce",
+        "agent_roles": {
+            "ceo": "Business strategy, supplier relationships, and growth direction",
+            "cfo": "Inventory costs, margins, cash flow, and financial planning",
+            "cito": "E-commerce platform, integrations, and technology infrastructure",
+            "sales": "B2B wholesale, partnerships, and marketplace expansion",
+            "legal": "Consumer protection, returns policy, and supplier contracts",
+            "dev_lead": "Website development, checkout optimization, and integrations",
+            "design_lead": "Product photography, branding, and user experience",
+            "qa_lead": "Product quality control, order accuracy, and testing",
+            "pm": "Product launches, seasonal planning, and inventory coordination",
+            "customer_success": "VIP customers, loyalty programs, and retention",
+            "marketing": "Digital advertising, SEO, email marketing, and promotions",
+            "support": "Customer service, returns, and order inquiries",
+        }
+    },
+    "creative_agency": {
+        "name": "Creative Agency",
+        "description": "Design and creative services agency for branding and content",
+        "default_company_name": "Your Studio Name",
+        "default_tagline": "Creative Agency",
+        "agent_roles": {
+            "ceo": "Creative vision, agency culture, and key client relationships",
+            "cfo": "Project pricing, freelancer payments, and agency finances",
+            "cito": "Creative tools, asset management, and production technology",
+            "sales": "New business pitches, RFP responses, and client acquisition",
+            "legal": "Usage rights, licensing, and creative contracts",
+            "dev_lead": "Digital production, motion graphics, and interactive work",
+            "design_lead": "Art direction, brand development, and visual design",
+            "qa_lead": "Creative review, brand consistency, and quality standards",
+            "pm": "Project timelines, resource scheduling, and delivery",
+            "customer_success": "Account management and creative partnerships",
+            "marketing": "Agency promotion, awards, and industry presence",
+            "support": "Asset delivery, revisions, and client communications",
+        }
+    },
+    "professional_services": {
+        "name": "Professional Services",
+        "description": "Service-based business providing specialized expertise",
+        "default_company_name": "Your Business Name",
+        "default_tagline": "Professional Services",
+        "agent_roles": {
+            "ceo": "Business leadership, expertise positioning, and strategic growth",
+            "cfo": "Service pricing, billing, and financial management",
+            "cito": "Service delivery tools, scheduling, and technology systems",
+            "sales": "Lead generation, consultations, and service sales",
+            "legal": "Service agreements, liability, and compliance",
+            "dev_lead": "Internal systems, automation, and digital tools",
+            "design_lead": "Brand materials, proposals, and presentation design",
+            "qa_lead": "Service quality, client satisfaction, and standards",
+            "pm": "Engagement scheduling, resource planning, and delivery",
+            "customer_success": "Client relationships, renewals, and referrals",
+            "marketing": "Reputation building, content marketing, and lead generation",
+            "support": "Client inquiries, scheduling, and service coordination",
+        }
+    },
+    "custom": {
+        "name": "Custom",
+        "description": "Define your own company type and agent roles",
+        "default_company_name": "Your Company Name",
+        "default_tagline": "Your Tagline",
+        "agent_roles": {
+            "ceo": "Chief Executive - overall leadership and strategy",
+            "cfo": "Chief Financial Officer - finances and budgeting",
+            "cito": "Chief Information/Technology Officer - technology strategy",
+            "sales": "Sales Director - business development and revenue",
+            "legal": "Legal Counsel - contracts and compliance",
+            "dev_lead": "Development/Operations Lead - implementation and delivery",
+            "design_lead": "Design/Creative Lead - design and user experience",
+            "qa_lead": "Quality Assurance Lead - quality and standards",
+            "pm": "Project Manager - coordination and delivery",
+            "customer_success": "Customer Success - client relationships",
+            "marketing": "Marketing Director - promotion and growth",
+            "support": "Support Lead - customer service and help",
+        }
+    }
+}
+
+
+class SettingsStore:
+    """Store for company settings and configuration."""
+
+    def __init__(self):
+        self.file_path = DATA_DIR / "settings.json"
+        self._ensure_file()
+
+    def _ensure_file(self) -> None:
+        """Ensure the settings file exists with defaults."""
+        if not self.file_path.exists():
+            self._save(self._get_defaults())
+
+    def _get_defaults(self) -> dict[str, Any]:
+        """Get default settings."""
+        return {
+            "company_name": "Rinse Repeat Labs",
+            "company_tagline": "App Development Studio",
+            "industry": "software_development",
+            "custom_agent_roles": {},  # Override specific agent roles
+            "theme": "light",
+            "created_at": datetime.now().isoformat(),
+            "updated_at": datetime.now().isoformat(),
+        }
+
+    def _load(self) -> dict[str, Any]:
+        """Load settings."""
+        content = self.file_path.read_text(encoding="utf-8")
+        if not content.strip():
+            return self._get_defaults()
+        settings = json.loads(content)
+        # Merge with defaults to ensure all keys exist
+        defaults = self._get_defaults()
+        for key, value in defaults.items():
+            if key not in settings:
+                settings[key] = value
+        return settings
+
+    def _save(self, settings: dict[str, Any]) -> None:
+        """Save settings."""
+        settings["updated_at"] = datetime.now().isoformat()
+        self.file_path.write_text(
+            json.dumps(settings, indent=2, default=str),
+            encoding="utf-8"
+        )
+
+    def get(self) -> dict[str, Any]:
+        """Get all settings."""
+        settings = self._load()
+        # Add computed fields
+        industry = settings.get("industry", "software_development")
+        preset = INDUSTRY_PRESETS.get(industry, INDUSTRY_PRESETS["software_development"])
+        settings["industry_name"] = preset["name"]
+        settings["industry_description"] = preset["description"]
+        return settings
+
+    def update(self, updates: dict[str, Any]) -> dict[str, Any]:
+        """Update settings."""
+        settings = self._load()
+        settings.update(updates)
+        self._save(settings)
+        return self.get()
+
+    def get_company_name(self) -> str:
+        """Get the company name."""
+        return self._load().get("company_name", "Rinse Repeat Labs")
+
+    def get_company_tagline(self) -> str:
+        """Get the company tagline."""
+        return self._load().get("company_tagline", "App Development Studio")
+
+    def get_industry(self) -> str:
+        """Get the current industry setting."""
+        return self._load().get("industry", "software_development")
+
+    def get_industry_preset(self) -> dict[str, Any]:
+        """Get the current industry preset."""
+        industry = self.get_industry()
+        return INDUSTRY_PRESETS.get(industry, INDUSTRY_PRESETS["software_development"])
+
+    def get_agent_role(self, agent_id: str) -> str:
+        """Get the role description for an agent."""
+        settings = self._load()
+        # Check for custom override first
+        custom_roles = settings.get("custom_agent_roles", {})
+        if agent_id in custom_roles:
+            return custom_roles[agent_id]
+        # Fall back to industry preset
+        preset = self.get_industry_preset()
+        return preset["agent_roles"].get(agent_id, "Team member")
+
+    def set_industry(self, industry: str) -> dict[str, Any]:
+        """Set the industry and optionally update company name/tagline to defaults."""
+        if industry not in INDUSTRY_PRESETS:
+            industry = "custom"
+        preset = INDUSTRY_PRESETS[industry]
+        updates = {"industry": industry}
+        # Only update name/tagline if they match the old preset defaults
+        current = self._load()
+        old_preset = INDUSTRY_PRESETS.get(current.get("industry", "software_development"), {})
+        if current.get("company_name") == old_preset.get("default_company_name"):
+            updates["company_name"] = preset["default_company_name"]
+        if current.get("company_tagline") == old_preset.get("default_tagline"):
+            updates["company_tagline"] = preset["default_tagline"]
+        return self.update(updates)
+
+    def reset_to_defaults(self) -> dict[str, Any]:
+        """Reset all settings to defaults."""
+        self._save(self._get_defaults())
+        return self.get()
+
+    @staticmethod
+    def get_available_industries() -> dict[str, dict[str, str]]:
+        """Get list of available industry presets."""
+        return {
+            key: {"name": value["name"], "description": value["description"]}
+            for key, value in INDUSTRY_PRESETS.items()
+        }
+
+
+# =============================================================================
 # CONVENIENCE FUNCTIONS
 # =============================================================================
 
@@ -925,6 +1193,7 @@ _clients_store: ClientsStore | None = None
 _projects_store: ProjectsStore | None = None
 _finances_store: FinancesStore | None = None
 _agent_requests_store: AgentRequestsStore | None = None
+_settings_store: SettingsStore | None = None
 
 
 def get_ideas_store() -> IdeasStore:
@@ -973,3 +1242,11 @@ def get_agent_requests_store() -> AgentRequestsStore:
     if _agent_requests_store is None:
         _agent_requests_store = AgentRequestsStore()
     return _agent_requests_store
+
+
+def get_settings_store() -> SettingsStore:
+    """Get the settings store singleton."""
+    global _settings_store
+    if _settings_store is None:
+        _settings_store = SettingsStore()
+    return _settings_store
