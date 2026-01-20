@@ -12,7 +12,7 @@ from functools import wraps
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, send_from_directory
 from src.data_store import (
     get_ideas_store,
     get_testers_store,
@@ -106,6 +106,16 @@ def status_badge(status):
         'cancelled': 'dark',
     }
     return badges.get(status, 'secondary')
+
+
+# =============================================================================
+# FAVICON
+# =============================================================================
+
+@app.route('/favicon.ico')
+def favicon():
+    """Serve favicon to avoid 404 errors."""
+    return '', 204  # No content - browser will use default
 
 
 # =============================================================================

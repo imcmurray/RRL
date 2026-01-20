@@ -25,7 +25,7 @@
                         </a>
                     </li>
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle {% if 'ideas' in request.endpoint %}active{% endif %}" href="#" data-bs-toggle="dropdown">
+                        <a class="nav-link dropdown-toggle {% if 'ideas' in (request.endpoint or '') %}active{% endif %}" href="#" data-bs-toggle="dropdown">
                             <i class="bi bi-lightbulb me-1"></i>Ideas
                         </a>
                         <ul class="dropdown-menu">
@@ -37,7 +37,7 @@
                         </ul>
                     </li>
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle {% if 'testers' in request.endpoint %}active{% endif %}" href="#" data-bs-toggle="dropdown">
+                        <a class="nav-link dropdown-toggle {% if 'testers' in (request.endpoint or '') %}active{% endif %}" href="#" data-bs-toggle="dropdown">
                             <i class="bi bi-people me-1"></i>Testers
                         </a>
                         <ul class="dropdown-menu">
@@ -48,7 +48,7 @@
                         </ul>
                     </li>
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle {% if 'clients' in request.endpoint %}active{% endif %}" href="#" data-bs-toggle="dropdown">
+                        <a class="nav-link dropdown-toggle {% if 'clients' in (request.endpoint or '') %}active{% endif %}" href="#" data-bs-toggle="dropdown">
                             <i class="bi bi-building me-1"></i>Clients
                         </a>
                         <ul class="dropdown-menu">
@@ -57,7 +57,7 @@
                         </ul>
                     </li>
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle {% if 'projects' in request.endpoint %}active{% endif %}" href="#" data-bs-toggle="dropdown">
+                        <a class="nav-link dropdown-toggle {% if 'projects' in (request.endpoint or '') %}active{% endif %}" href="#" data-bs-toggle="dropdown">
                             <i class="bi bi-kanban me-1"></i>Projects
                         </a>
                         <ul class="dropdown-menu">
@@ -68,12 +68,12 @@
                         </ul>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {% if 'finances' in request.endpoint %}active{% endif %}" href="{{ url_for('finances_dashboard') }}">
+                        <a class="nav-link {% if 'finances' in (request.endpoint or '') %}active{% endif %}" href="{{ url_for('finances_dashboard') }}">
                             <i class="bi bi-currency-dollar me-1"></i>Finances
                         </a>
                     </li>
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle {% if 'reports' in request.endpoint or 'meetings' in request.endpoint %}active{% endif %}" href="#" data-bs-toggle="dropdown">
+                        <a class="nav-link dropdown-toggle {% if 'reports' in (request.endpoint or '') or 'meetings' in (request.endpoint or '') %}active{% endif %}" href="#" data-bs-toggle="dropdown">
                             <i class="bi bi-file-earmark-text me-1"></i>Reports
                         </a>
                         <ul class="dropdown-menu">
@@ -85,7 +85,7 @@
                         </ul>
                     </li>
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle {% if 'agent' in request.endpoint %}active{% endif %}" href="#" data-bs-toggle="dropdown">
+                        <a class="nav-link dropdown-toggle {% if 'agent' in (request.endpoint or '') %}active{% endif %}" href="#" data-bs-toggle="dropdown">
                             <i class="bi bi-robot me-1"></i>Agent Portals
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end">
