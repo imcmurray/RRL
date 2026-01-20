@@ -103,6 +103,8 @@
 {% endfor %}{% endif %}</textarea>
                     </div>
 
+                    {% if tester %}
+                    <!-- Payment section only shown when editing existing testers -->
                     <hr class="my-4">
                     <h5 class="mb-4"><i class="bi bi-credit-card me-2"></i>Payment</h5>
 
@@ -111,18 +113,19 @@
                             <label for="payment_method" class="form-label">Preferred Payment Method</label>
                             <select class="form-select" id="payment_method" name="payment_method">
                                 <option value="">Select...</option>
-                                <option value="PayPal" {{ 'selected' if tester and tester.payment_method == 'PayPal' }}>PayPal</option>
-                                <option value="Bank Transfer" {{ 'selected' if tester and tester.payment_method == 'Bank Transfer' }}>Bank Transfer</option>
-                                <option value="Venmo" {{ 'selected' if tester and tester.payment_method == 'Venmo' }}>Venmo</option>
-                                <option value="Check" {{ 'selected' if tester and tester.payment_method == 'Check' }}>Check</option>
+                                <option value="PayPal" {{ 'selected' if tester.payment_method == 'PayPal' }}>PayPal</option>
+                                <option value="Bank Transfer" {{ 'selected' if tester.payment_method == 'Bank Transfer' }}>Bank Transfer</option>
+                                <option value="Venmo" {{ 'selected' if tester.payment_method == 'Venmo' }}>Venmo</option>
+                                <option value="Check" {{ 'selected' if tester.payment_method == 'Check' }}>Check</option>
                             </select>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label for="payment_details" class="form-label">Payment Details</label>
                             <input type="text" class="form-control" id="payment_details" name="payment_details"
-                                   value="{{ tester.payment_details if tester else '' }}" placeholder="PayPal email, account number, etc.">
+                                   value="{{ tester.payment_details }}" placeholder="PayPal email, account number, etc.">
                         </div>
                     </div>
+                    {% endif %}
 
                     <hr class="my-4">
 
