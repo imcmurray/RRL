@@ -51,44 +51,48 @@
                     <div class="row">
                         {% for preset_id, preset in presets.items() %}
                         <div class="col-md-6 mb-3">
-                            <div class="form-check card p-3 h-100 meeting-type-card" data-preset="{{ preset_id }}">
-                                <input class="form-check-input" type="radio" name="meeting_type" 
-                                       id="type-{{ preset_id }}" value="{{ preset_id }}"
-                                       {% if request.args.get('type') == preset_id %}checked{% endif %}>
-                                <label class="form-check-label w-100" for="type-{{ preset_id }}">
-                                    <div class="d-flex align-items-center mb-2">
-                                        <span class="badge bg-{{ preset.color }} me-2">
-                                            <i class="bi bi-{{ preset.icon }}"></i>
-                                        </span>
-                                        <strong>{{ preset.name }}</strong>
-                                    </div>
-                                    <p class="text-muted small mb-2">{{ preset.description }}</p>
-                                    <div>
-                                        {% for agent_id in preset.agents %}
-                                        <span class="badge bg-light text-dark me-1 mb-1">{{ all_agents[agent_id].role if agent_id in all_agents else agent_id }}</span>
-                                        {% endfor %}
-                                    </div>
-                                </label>
+                            <div class="card p-3 h-100 meeting-type-card" data-preset="{{ preset_id }}" role="button">
+                                <div class="d-flex align-items-start">
+                                    <input class="form-check-input mt-1 me-3" type="radio" name="meeting_type"
+                                           id="type-{{ preset_id }}" value="{{ preset_id }}"
+                                           {% if request.args.get('preset') == preset_id %}checked{% endif %}>
+                                    <label class="form-check-label w-100" for="type-{{ preset_id }}" style="cursor: pointer;">
+                                        <div class="d-flex align-items-center mb-2">
+                                            <span class="badge bg-{{ preset.color }} me-2">
+                                                <i class="bi bi-{{ preset.icon }}"></i>
+                                            </span>
+                                            <strong>{{ preset.name }}</strong>
+                                        </div>
+                                        <p class="text-muted small mb-2">{{ preset.description }}</p>
+                                        <div>
+                                            {% for agent_id in preset.agents %}
+                                            <span class="agent-badge agent-{{ agent_id }} me-1 mb-1">{{ all_agents[agent_id].role if agent_id in all_agents else agent_id }}</span>
+                                            {% endfor %}
+                                        </div>
+                                    </label>
+                                </div>
                             </div>
                         </div>
                         {% endfor %}
-                        
+
                         <!-- Custom Option -->
                         <div class="col-md-6 mb-3">
-                            <div class="form-check card p-3 h-100 meeting-type-card" data-preset="custom">
-                                <input class="form-check-input" type="radio" name="meeting_type" 
-                                       id="type-custom" value="custom"
-                                       {% if not request.args.get('type') %}checked{% endif %}>
-                                <label class="form-check-label w-100" for="type-custom">
-                                    <div class="d-flex align-items-center mb-2">
-                                        <span class="badge bg-dark me-2">
-                                            <i class="bi bi-sliders"></i>
-                                        </span>
-                                        <strong>Custom Meeting</strong>
-                                    </div>
-                                    <p class="text-muted small mb-2">Choose exactly which agents to include</p>
-                                    <span class="badge bg-light text-dark">Select agents below</span>
-                                </label>
+                            <div class="card p-3 h-100 meeting-type-card" data-preset="custom" role="button">
+                                <div class="d-flex align-items-start">
+                                    <input class="form-check-input mt-1 me-3" type="radio" name="meeting_type"
+                                           id="type-custom" value="custom"
+                                           {% if not request.args.get('preset') %}checked{% endif %}>
+                                    <label class="form-check-label w-100" for="type-custom" style="cursor: pointer;">
+                                        <div class="d-flex align-items-center mb-2">
+                                            <span class="badge bg-dark me-2">
+                                                <i class="bi bi-sliders"></i>
+                                            </span>
+                                            <strong>Custom Meeting</strong>
+                                        </div>
+                                        <p class="text-muted small mb-2">Choose exactly which agents to include</p>
+                                        <span class="badge bg-secondary">Select agents below</span>
+                                    </label>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -212,25 +216,25 @@ document.addEventListener('DOMContentLoaded', function() {
         if (typeValue === 'custom') {
             customSection.style.display = 'block';
             selectedTypeDisplay.textContent = 'Custom Meeting';
-            
+
             const selected = Array.from(agentCheckboxes).filter(cb => cb.checked);
             if (selected.length === 0) {
                 selectedAgentsDisplay.innerHTML = '<span class="text-muted">No agents selected</span>';
             } else {
                 selectedAgentsDisplay.innerHTML = selected.map(cb => {
                     const agent = allAgents[cb.value];
-                    return '<span class="badge bg-secondary me-1 mb-1">' + (agent ? agent.role : cb.value) + '</span>';
+                    return '<span class="agent-badge agent-' + cb.value + ' me-1 mb-1">' + (agent ? agent.role : cb.value) + '</span>';
                 }).join('');
             }
         } else {
             customSection.style.display = 'none';
             const preset = presets[typeValue];
             selectedTypeDisplay.textContent = preset ? preset.name : typeValue;
-            
+
             if (preset && preset.agents) {
                 selectedAgentsDisplay.innerHTML = preset.agents.map(aid => {
                     const agent = allAgents[aid];
-                    return '<span class="badge bg-secondary me-1 mb-1">' + (agent ? agent.role : aid) + '</span>';
+                    return '<span class="agent-badge agent-' + aid + ' me-1 mb-1">' + (agent ? agent.role : aid) + '</span>';
                 }).join('');
             }
         }
