@@ -160,4 +160,8 @@ For detailed information on how the system works:
 
 ## License
 
-MIT License - See LICENSE file for details.
+[PolyForm Noncommercial 1.0.0](LICENSE) — Free for personal use, research, education, and non-profits.
+
+### Commercial Use
+
+Want to use this in your business? Commercial licenses are available. Contact [support@RinseRepeatLabs.com](mailto:support@RinseRepeatLabs.com) for licensing options.
