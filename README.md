@@ -22,6 +22,18 @@ The orchestrator enables **you (the Architect)** to run virtual meetings with AI
               └─────────┘     └───────────┘    └───────────┘
 ```
 
+## Screenshots
+
+### Dashboard
+The main command center with stats, quick actions, recent activity, and AI agent team overview.
+
+![Dashboard](docs/screenshots/dashboard.png)
+
+### Agent Portals
+Access all 12 AI agents organized by team - Executive, Product & Engineering, and Operations.
+
+![Agent Portals](docs/screenshots/agent-portals.png)
+
 ## Installation
 
 ```bash
