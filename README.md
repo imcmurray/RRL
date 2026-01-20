@@ -568,6 +568,7 @@ python orchestrator.py requests status <request_id> in_progress
 
 For detailed information on how the system works:
 
+- **[User Guide](docs/USER_GUIDE.md)** — Getting started, use case scenarios, dashboard walkthrough, and common workflows
 - **[Architecture Guide](docs/ARCHITECTURE.md)** — System architecture, context sharing, agent interaction patterns
 - **[Process Flows](docs/PROCESS.md)** — Idea submission, project lifecycle, decision making, operational processes
 - **[Data Management](docs/DATA_MANAGEMENT.md)** — Ideas, testers, clients, projects, finances, and reports
