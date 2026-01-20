@@ -1,37 +1,57 @@
 <!-- Dashboard Stats Partial (HTMX) -->
-<div class="col-md-3 col-6">
+<div class="col-lg-3 col-md-6 mb-3">
     <div class="card stats-card">
-        <div class="card-body">
-            <h6 class="text-muted mb-2">Ideas</h6>
-            <h3 class="mb-0">{{ ideas_count }}</h3>
-            <small class="text-warning">{{ ideas_pending }} pending</small>
+        <div class="card-body d-flex align-items-center">
+            <div class="stat-icon text-primary me-3">
+                <i class="bi bi-lightbulb"></i>
+            </div>
+            <div>
+                <div class="stat-value">{{ ideas_count }}</div>
+                <div class="stat-label">Ideas</div>
+                <small class="text-muted">{{ ideas_pending }} pending review</small>
+            </div>
         </div>
     </div>
 </div>
-<div class="col-md-3 col-6">
+<div class="col-lg-3 col-md-6 mb-3">
     <div class="card stats-card">
-        <div class="card-body">
-            <h6 class="text-muted mb-2">Testers</h6>
-            <h3 class="mb-0">{{ testers_count }}</h3>
-            <small class="text-success">{{ testers_active }} active</small>
+        <div class="card-body d-flex align-items-center">
+            <div class="stat-icon text-success me-3">
+                <i class="bi bi-people"></i>
+            </div>
+            <div>
+                <div class="stat-value">{{ testers_active }}</div>
+                <div class="stat-label">Active Testers</div>
+                <small class="text-muted">{{ testers_count }} total</small>
+            </div>
         </div>
     </div>
 </div>
-<div class="col-md-3 col-6">
+<div class="col-lg-3 col-md-6 mb-3">
     <div class="card stats-card">
-        <div class="card-body">
-            <h6 class="text-muted mb-2">Projects</h6>
-            <h3 class="mb-0">{{ projects_count }}</h3>
-            <small class="text-primary">{{ projects_active }} active</small>
+        <div class="card-body d-flex align-items-center">
+            <div class="stat-icon text-info me-3">
+                <i class="bi bi-kanban"></i>
+            </div>
+            <div>
+                <div class="stat-value">{{ projects_active }}</div>
+                <div class="stat-label">Active Projects</div>
+                <small class="text-muted">{{ projects_count }} total</small>
+            </div>
         </div>
     </div>
 </div>
-<div class="col-md-3 col-6">
+<div class="col-lg-3 col-md-6 mb-3">
     <div class="card stats-card">
-        <div class="card-body">
-            <h6 class="text-muted mb-2">Outstanding</h6>
-            <h3 class="mb-0">{{ outstanding | currency }}</h3>
-            <small class="text-info">invoices</small>
+        <div class="card-body d-flex align-items-center">
+            <div class="stat-icon text-warning me-3">
+                <i class="bi bi-currency-dollar"></i>
+            </div>
+            <div>
+                <div class="stat-value">{{ outstanding | currency }}</div>
+                <div class="stat-label">Outstanding</div>
+                <small class="text-muted">invoices</small>
+            </div>
         </div>
     </div>
 </div>

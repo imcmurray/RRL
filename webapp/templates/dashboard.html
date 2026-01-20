@@ -10,8 +10,11 @@
     </div>
 </div>
 
-<!-- Stats Cards -->
-<div class="row mb-4" id="dashboardStats">
+<!-- Stats Cards (HTMX auto-refresh every 30s) -->
+<div class="row mb-4" id="dashboard-stats"
+     hx-get="{{ url_for('htmx_dashboard_stats') }}"
+     hx-trigger="every 30s"
+     hx-swap="innerHTML">
     <div class="col-lg-3 col-md-6 mb-3">
         <div class="card stats-card">
             <div class="card-body d-flex align-items-center">
@@ -233,31 +236,32 @@
     <!-- Agent Team -->
     <div class="col-lg-6 mb-4">
         <div class="card content-card">
-            <div class="card-header">
+            <div class="card-header d-flex justify-content-between align-items-center">
                 <h5><i class="bi bi-robot me-2"></i>AI Agent Team</h5>
+                <a href="{{ url_for('agents_list') }}" class="btn btn-sm btn-outline-primary">All Portals</a>
             </div>
             <div class="card-body">
                 <div class="row">
                     <div class="col-12 mb-3">
                         <h6 class="text-muted mb-2">Executive Team</h6>
-                        <span class="agent-badge agent-ceo me-1 mb-1">CEO</span>
-                        <span class="agent-badge agent-cfo me-1 mb-1">CFO</span>
-                        <span class="agent-badge agent-cito me-1 mb-1">CITO</span>
-                        <span class="agent-badge agent-sales me-1 mb-1">Sales</span>
-                        <span class="agent-badge agent-legal me-1 mb-1">Legal</span>
+                        <a href="{{ url_for('agent_portal', agent_id='ceo') }}" class="agent-badge agent-ceo me-1 mb-1 text-decoration-none">CEO</a>
+                        <a href="{{ url_for('agent_portal', agent_id='cfo') }}" class="agent-badge agent-cfo me-1 mb-1 text-decoration-none">CFO</a>
+                        <a href="{{ url_for('agent_portal', agent_id='cito') }}" class="agent-badge agent-cito me-1 mb-1 text-decoration-none">CITO</a>
+                        <a href="{{ url_for('agent_portal', agent_id='sales') }}" class="agent-badge agent-sales me-1 mb-1 text-decoration-none">Sales</a>
+                        <a href="{{ url_for('agent_portal', agent_id='legal') }}" class="agent-badge agent-legal me-1 mb-1 text-decoration-none">Legal</a>
                     </div>
                     <div class="col-12 mb-3">
                         <h6 class="text-muted mb-2">Product & Engineering</h6>
-                        <span class="agent-badge agent-dev_lead me-1 mb-1">Dev Lead</span>
-                        <span class="agent-badge agent-design_lead me-1 mb-1">Design Lead</span>
-                        <span class="agent-badge agent-qa_lead me-1 mb-1">QA Lead</span>
+                        <a href="{{ url_for('agent_portal', agent_id='dev_lead') }}" class="agent-badge agent-dev_lead me-1 mb-1 text-decoration-none">Dev Lead</a>
+                        <a href="{{ url_for('agent_portal', agent_id='design_lead') }}" class="agent-badge agent-design_lead me-1 mb-1 text-decoration-none">Design Lead</a>
+                        <a href="{{ url_for('agent_portal', agent_id='qa_lead') }}" class="agent-badge agent-qa_lead me-1 mb-1 text-decoration-none">QA Lead</a>
                     </div>
                     <div class="col-12">
                         <h6 class="text-muted mb-2">Operations</h6>
-                        <span class="agent-badge agent-pm me-1 mb-1">PM</span>
-                        <span class="agent-badge agent-customer_success me-1 mb-1">Customer Success</span>
-                        <span class="agent-badge agent-marketing me-1 mb-1">Marketing</span>
-                        <span class="agent-badge agent-support me-1 mb-1">Support</span>
+                        <a href="{{ url_for('agent_portal', agent_id='pm') }}" class="agent-badge agent-pm me-1 mb-1 text-decoration-none">PM</a>
+                        <a href="{{ url_for('agent_portal', agent_id='customer_success') }}" class="agent-badge agent-customer_success me-1 mb-1 text-decoration-none">Customer Success</a>
+                        <a href="{{ url_for('agent_portal', agent_id='marketing') }}" class="agent-badge agent-marketing me-1 mb-1 text-decoration-none">Marketing</a>
+                        <a href="{{ url_for('agent_portal', agent_id='support') }}" class="agent-badge agent-support me-1 mb-1 text-decoration-none">Support</a>
                     </div>
                 </div>
             </div>

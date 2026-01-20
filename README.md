@@ -61,6 +61,12 @@ export ANTHROPIC_API_KEY="your-key-here"
 ## Quick Start
 
 ```bash
+# First-time setup wizard (recommended)
+python orchestrator.py setup
+
+# Or setup and launch web dashboard
+python orchestrator.py setup --launch-web
+
 # Interactive mode (recommended for exploration)
 python orchestrator.py interactive
 
@@ -81,7 +87,20 @@ python orchestrator.py status
 
 The orchestrator includes a full-featured web dashboard for visual management of all company data.
 
-### Setup & Running
+### One-Command Start
+
+```bash
+# Launch web dashboard (auto-opens browser)
+python start.py
+
+# Without auto-opening browser
+python start.py --no-browser
+
+# Custom port
+python start.py --port 8080
+```
+
+### Manual Setup
 
 ```bash
 # Navigate to webapp directory
@@ -95,6 +114,14 @@ python app.py
 ```
 
 The dashboard starts on **http://localhost:5000** by default. No login required for local development.
+
+### Live Updates (HTMX)
+
+The dashboard uses HTMX for real-time updates without full page reloads:
+- **Dashboard stats** refresh every 30 seconds
+- **Agent portal stats & activity** refresh every 30 seconds
+- **Feature requests tables** refresh every 60 seconds
+- Manual refresh buttons available on key sections
 
 ### Key Pages
 

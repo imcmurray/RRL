@@ -12,15 +12,24 @@ Rinse Repeat Labs (RRL) is an AI-powered app development studio with a 12-agent 
 ## Quick Start
 
 ```bash
+# First-time setup wizard
+python orchestrator.py setup
+
+# Setup and launch web dashboard
+python orchestrator.py setup --launch-web
+
+# One-command web start (auto-opens browser)
+python start.py
+
 # CLI - Run 1:1 meeting with an agent
-python orchestrator.py meeting ceo
+python orchestrator.py 1on1 --agent ceo
 
 # CLI - Data management
 python orchestrator.py ideas list
 python orchestrator.py testers add --name "John" --email "john@test.com"
 python orchestrator.py requests pending
 
-# Web Dashboard
+# Web Dashboard (manual)
 cd webapp && python app.py
 # Opens at http://localhost:5000
 ```
@@ -28,7 +37,8 @@ cd webapp && python app.py
 ## Architecture
 
 ```
-orchestrator.py          # Main CLI entry point
+orchestrator.py          # Main CLI entry point (meetings, data management, setup)
+start.py                 # Quick-start script for web dashboard (auto-opens browser)
 ├── src/
 │   ├── data_store.py    # All data stores (Ideas, Testers, Clients, Projects, Finances, AgentRequests)
 │   ├── data_cli.py      # Click commands for data management
@@ -36,8 +46,9 @@ orchestrator.py          # Main CLI entry point
 │   └── utils.py         # Helper functions
 ├── agents/              # Agent system prompts (12 markdown files)
 ├── webapp/
-│   ├── app.py           # Flask application with all routes
+│   ├── app.py           # Flask application with all routes + HTMX endpoints
 │   ├── templates/       # Jinja2 templates (Bootstrap 5)
+│   │   └── */partials/  # HTMX partial templates for live updates
 │   └── static/          # CSS, JS assets
 └── data/                # JSON data files (gitignored)
 ```
