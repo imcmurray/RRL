@@ -1018,6 +1018,151 @@ def interactive():
             continue
 
 
+# =============================================================================
+# SETUP WIZARD
+# =============================================================================
+
+@cli.command()
+@click.option(
+    "--skip-api",
+    is_flag=True,
+    help="Skip API key configuration",
+)
+@click.option(
+    "--launch-web",
+    is_flag=True,
+    help="Launch web dashboard after setup",
+)
+def setup(skip_api: bool, launch_web: bool):
+    """First-time setup wizard for Rinse Repeat Labs.
+
+    Guides you through:
+    - API key configuration
+    - Creating data directories
+    - Verifying agent prompts
+    - Optionally launching the web dashboard
+
+    Examples:
+        python orchestrator.py setup
+        python orchestrator.py setup --launch-web
+    """
+    import os
+    import subprocess
+
+    console.print()
+    console.print(
+        Panel(
+            "[bold cyan]Rinse Repeat Labs[/bold cyan] — Setup Wizard\n"
+            "   Let's get you started, Architect.",
+            border_style="cyan",
+        )
+    )
+    console.print()
+
+    # Step 1: Check/Create directories
+    console.print("[bold]Step 1: Checking directories...[/bold]")
+    data_dir = config.BASE_DIR / "data"
+    meetings_dir = config.MEETINGS_DIR
+    reports_dir = config.BASE_DIR / "reports"
+
+    for dir_path in [data_dir, meetings_dir, reports_dir]:
+        if not dir_path.exists():
+            dir_path.mkdir(parents=True, exist_ok=True)
+            console.print(f"  [green]Created:[/green] {dir_path}")
+        else:
+            console.print(f"  [dim]Exists:[/dim] {dir_path}")
+    console.print()
+
+    # Step 2: Check API key
+    if not skip_api:
+        console.print("[bold]Step 2: API Key Configuration...[/bold]")
+        api_key = os.environ.get("ANTHROPIC_API_KEY", "")
+
+        if api_key:
+            masked = api_key[:8] + "..." + api_key[-4:] if len(api_key) > 12 else "***"
+            console.print(f"  [green]Found:[/green] ANTHROPIC_API_KEY ({masked})")
+        else:
+            console.print("  [yellow]Not found:[/yellow] ANTHROPIC_API_KEY")
+            console.print()
+            console.print("  To set your API key, run:")
+            console.print("  [cyan]export ANTHROPIC_API_KEY='your-key-here'[/cyan]")
+            console.print()
+            console.print("  Or add to your shell profile (~/.bashrc, ~/.zshrc)")
+
+            new_key = Prompt.ask(
+                "  Enter API key now (or press Enter to skip)",
+                default="",
+                password=True,
+            )
+            if new_key:
+                os.environ["ANTHROPIC_API_KEY"] = new_key
+                console.print("  [green]API key set for this session[/green]")
+    else:
+        console.print("[bold]Step 2: API Key Configuration...[/bold] [dim](skipped)[/dim]")
+    console.print()
+
+    # Step 3: Verify agents
+    console.print("[bold]Step 3: Verifying agent prompts...[/bold]")
+    registry = AgentRegistry()
+    available = registry.list_available()
+    console.print(f"  [green]Found {len(available)} agents:[/green]")
+
+    # Group by team
+    exec_count = len([a for a in available if a in config.EXECUTIVE_TEAM])
+    tech_count = len([a for a in available if a in config.TECHNICAL_TEAM])
+    ops_count = len(available) - exec_count - tech_count
+
+    console.print(f"    Executive: {exec_count}")
+    console.print(f"    Technical: {tech_count}")
+    console.print(f"    Operations: {ops_count}")
+    console.print()
+
+    # Step 4: Check data stores
+    console.print("[bold]Step 4: Initializing data stores...[/bold]")
+    from src.data_store import (
+        get_ideas_store, get_testers_store, get_clients_store,
+        get_projects_store, get_finances_store, get_agent_requests_store
+    )
+
+    stores = [
+        ("Ideas", get_ideas_store),
+        ("Testers", get_testers_store),
+        ("Clients", get_clients_store),
+        ("Projects", get_projects_store),
+        ("Finances", get_finances_store),
+        ("Agent Requests", get_agent_requests_store),
+    ]
+
+    for name, get_store in stores:
+        store = get_store()
+        count = len(store.get_all())
+        console.print(f"  [green]{name}:[/green] {count} records")
+    console.print()
+
+    # Done!
+    console.print(
+        Panel(
+            "[bold green]Setup Complete![/bold green]\n\n"
+            "Quick start commands:\n"
+            "  [cyan]python orchestrator.py interactive[/cyan] — Interactive menu\n"
+            "  [cyan]python orchestrator.py ceo-sync[/cyan] — Meet with the CEO\n"
+            "  [cyan]python orchestrator.py status[/cyan] — Company dashboard\n"
+            "  [cyan]python start.py[/cyan] — Launch web dashboard\n",
+            border_style="green",
+        )
+    )
+
+    # Launch web if requested
+    if launch_web:
+        console.print()
+        console.print("[bold]Launching web dashboard...[/bold]")
+        subprocess.Popen(
+            [sys.executable, "start.py"],
+            cwd=config.BASE_DIR,
+        )
+        console.print("[green]Web dashboard starting at http://localhost:5000[/green]")
+
+
 # Register data management command groups
 cli.add_command(ideas)
 cli.add_command(testers)
