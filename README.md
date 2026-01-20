@@ -164,4 +164,4 @@ For detailed information on how the system works:
 
 ### Commercial Use
 
-Want to use this in your business? Commercial licenses are available. Contact [ian@rinserepeat.io](mailto:ian@rinserepeat.io) for licensing options.
+Want to use this in your business? Commercial licenses are available. Contact [support@RinseRepeatLabs.com](mailto:support@RinseRepeatLabs.com) for licensing options.
