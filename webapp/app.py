@@ -20,6 +20,7 @@ from src.data_store import (
     get_projects_store,
     get_finances_store,
     get_agent_requests_store,
+    get_settings_store,
     IdeaStatus,
     TesterStatus,
     ProjectStatus,
@@ -27,6 +28,7 @@ from src.data_store import (
     PaymentType,
     FeatureRequestStatus,
     FeatureRequestPriority,
+    INDUSTRY_PRESETS,
 )
 from src import reports
 from src.utils import query_decisions, list_meetings, load_file
@@ -116,6 +118,22 @@ def status_badge(status):
 def favicon():
     """Serve favicon to avoid 404 errors."""
     return '', 204  # No content - browser will use default
+
+
+# =============================================================================
+# CONTEXT PROCESSOR - Inject settings into all templates
+# =============================================================================
+
+@app.context_processor
+def inject_company_settings():
+    """Inject company settings into all templates."""
+    settings = get_settings_store().get()
+    return {
+        'company_name': settings.get('company_name', 'Rinse Repeat Labs'),
+        'company_tagline': settings.get('company_tagline', 'App Development Studio'),
+        'company_industry': settings.get('industry', 'software_development'),
+        'company_settings': settings,
+    }
 
 
 # =============================================================================
@@ -1980,6 +1998,82 @@ def agent_request_vote(request_id):
         flash('Failed to record vote', 'error')
 
     return redirect(url_for('agent_request_detail', request_id=request_id))
+
+
+# =============================================================================
+# SETTINGS
+# =============================================================================
+
+@app.route('/settings')
+def settings_page():
+    """Company settings page."""
+    settings = get_settings_store().get()
+
+    return render_template('settings/index.html',
+        settings=settings,
+        industry_presets=INDUSTRY_PRESETS
+    )
+
+
+@app.route('/settings/update', methods=['POST'])
+def settings_update():
+    """Update company settings."""
+    store = get_settings_store()
+
+    # Get form data
+    company_name = request.form.get('company_name', '').strip()
+    company_tagline = request.form.get('company_tagline', '').strip()
+    industry = request.form.get('industry', 'software_development')
+
+    # Update settings
+    updates = {}
+
+    if company_name:
+        updates['company_name'] = company_name
+
+    if company_tagline:
+        updates['company_tagline'] = company_tagline
+
+    if industry:
+        updates['industry'] = industry
+        # If changing to a preset industry, optionally update defaults
+        if industry in INDUSTRY_PRESETS and industry != 'custom':
+            preset = INDUSTRY_PRESETS[industry]
+            # Only update name/tagline if they match the old preset (user hasn't customized)
+            current = store.get()
+            old_industry = current.get('industry', 'software_development')
+            if old_industry in INDUSTRY_PRESETS:
+                old_preset = INDUSTRY_PRESETS[old_industry]
+                if current.get('company_name') == old_preset.get('default_company_name'):
+                    updates['company_name'] = preset.get('default_company_name', company_name)
+                if current.get('company_tagline') == old_preset.get('default_tagline'):
+                    updates['company_tagline'] = preset.get('default_tagline', company_tagline)
+
+    if updates:
+        store.update(updates)
+        flash('Settings updated successfully!', 'success')
+
+    return redirect(url_for('settings_page'))
+
+
+@app.route('/settings/reset', methods=['POST'])
+def settings_reset():
+    """Reset settings to defaults for current industry."""
+    store = get_settings_store()
+    current = store.get()
+    industry = current.get('industry', 'software_development')
+
+    if industry in INDUSTRY_PRESETS:
+        preset = INDUSTRY_PRESETS[industry]
+        store.update({
+            'company_name': preset.get('default_company_name', 'My Company'),
+            'company_tagline': preset.get('default_tagline', 'Your Business'),
+        })
+        flash(f'Settings reset to {preset["name"]} defaults.', 'success')
+    else:
+        flash('Cannot reset custom industry settings.', 'warning')
+
+    return redirect(url_for('settings_page'))
 
 
 # =============================================================================

@@ -483,6 +483,51 @@ python orchestrator.py ceo-sync --topic "Next month priorities"
 
 ---
 
+## Customizing Your Company
+
+The RRL AI Orchestrator can be customized to match any business type, not just software development.
+
+### Changing Company Settings
+
+Access settings via the **Settings** menu (gear icon) > **Company Settings**, or navigate to `/settings`.
+
+You can customize:
+
+| Setting | Description |
+|---------|-------------|
+| **Company Name** | Appears in the navigation bar and throughout the dashboard |
+| **Company Tagline** | Shows in the footer, describing your business |
+| **Industry Focus** | Adapts agent roles and suggestions to your business type |
+
+### Industry Presets
+
+Choose from pre-configured industry presets:
+
+| Industry | Best For |
+|----------|----------|
+| **Software Development** | App studios, dev agencies, tech startups |
+| **Marketing Agency** | Digital marketing, advertising, brand agencies |
+| **Consulting Firm** | Business, management, and strategy consulting |
+| **E-commerce Business** | Online retail, marketplaces, D2C brands |
+| **Creative Agency** | Design studios, media production, creative services |
+| **Professional Services** | Accounting, law firms, architecture firms |
+| **Custom** | Build your own configuration from scratch |
+
+Each preset adjusts agent roles to match your industry. For example:
+- In a **Marketing Agency**, the CFO focuses on campaign ROI and client billing
+- In a **Consulting Firm**, the PM emphasizes engagement management
+- In an **E-commerce Business**, the Sales agent handles vendor and supplier relations
+
+### Advanced Customization
+
+For deeper customization:
+
+1. **Edit agent prompts** - Modify files in `agents/` folder to change how agents think and respond
+2. **Update AGENT_INFO** - Edit `webapp/app.py` to change agent descriptions in portals
+3. **Create custom presets** - Add new industry configurations in `src/data_store.py`
+
+---
+
 ## Tips for Success
 
 1. **Start with 1:1s** - Get comfortable talking to individual agents before running group meetings
@@ -497,7 +542,7 @@ python orchestrator.py ceo-sync --topic "Next month priorities"
 
 6. **Review Transcripts** - Meeting transcripts in `meetings/` folder contain valuable insights
 
-7. **Customize Agents** - Edit agent prompts in `agents/` to match your industry
+7. **Customize Your Company** - Use Settings to rebrand and adapt to your industry
 
 ---
 
@@ -513,9 +558,10 @@ python orchestrator.py ceo-sync --topic "Next month priorities"
 
 Once you're comfortable with the basics:
 
-1. **Customize agent prompts** to match your industry
-2. **Set up recurring meetings** for consistent check-ins
-3. **Integrate with your tools** using the JSON data stores
-4. **Build custom reports** using the data in `data/*.json`
+1. **Rebrand for your business** - Go to Settings and customize company name, tagline, and industry
+2. **Customize agent prompts** - Edit files in `agents/` to refine agent personalities
+3. **Set up recurring meetings** - Establish consistent check-ins with your AI team
+4. **Integrate with your tools** - Use the JSON data stores in `data/*.json`
+5. **Build custom reports** - Extend the reporting system for your specific needs
 
 The AI Orchestrator grows with you - start simple and add complexity as needed.
