@@ -1401,9 +1401,12 @@ class AgentCustomizationsStore:
         )
 
     def get_agent_defaults(self, agent_id: str) -> dict[str, Any]:
-        """Get default values for an agent based on AGENT_INFO."""
+        """Get default values for an agent based on AGENT_INFO and AGENT_DOCUMENTATION."""
         from webapp.app import AGENT_INFO
         agent_info = AGENT_INFO.get(agent_id, {})
+        agent_docs = AGENT_DOCUMENTATION.get(agent_id, {})
+        collaboration = agent_docs.get("collaboration", {})
+
         return {
             "display_name": agent_info.get("name", agent_id.replace("_", " ").title()),
             "role_title": agent_info.get("role", agent_id.upper()),
@@ -1412,6 +1415,10 @@ class AgentCustomizationsStore:
             "metrics": agent_info.get("metrics", []),
             "custom_instructions": "",
             "is_active": True,
+            # Reporting structure defaults from documentation
+            "reports_to": collaboration.get("reports_to", "Architect"),
+            "direct_reports": collaboration.get("direct_reports", []),
+            "collaborates_with": collaboration.get("collaborates_with", []),
         }
 
     def get_agent(self, agent_id: str) -> dict[str, Any]:

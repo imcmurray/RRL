@@ -1867,6 +1867,17 @@ def agent_settings(agent_id):
         metrics_text = request.form.get('metrics', '')
         updates['metrics'] = [m.strip() for m in metrics_text.split('\n') if m.strip()]
 
+        # Handle reporting structure
+        updates['reports_to'] = request.form.get('reports_to', '').strip()
+
+        # Handle direct reports (comma-separated)
+        direct_reports_text = request.form.get('direct_reports', '')
+        updates['direct_reports'] = [r.strip() for r in direct_reports_text.split(',') if r.strip()]
+
+        # Handle collaborates_with (textarea, one per line)
+        collaborates_text = request.form.get('collaborates_with', '')
+        updates['collaborates_with'] = [c.strip() for c in collaborates_text.split('\n') if c.strip()]
+
         customizations_store.update_agent(agent_id, updates)
         flash(f'{agent["name"]} settings updated successfully!', 'success')
         return redirect(url_for('agent_portal', agent_id=agent_id, tab='settings'))

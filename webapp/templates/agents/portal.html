@@ -327,11 +327,43 @@
                         <div class="form-text">What this agent tracks and reports on (one per line)</div>
                     </div>
 
-                    <div class="mb-4">
+                    <div class="mb-3">
                         <label for="custom_instructions" class="form-label">Custom Instructions</label>
-                        <textarea class="form-control" id="custom_instructions" name="custom_instructions" rows="4"
+                        <textarea class="form-control" id="custom_instructions" name="custom_instructions" rows="3"
                                   placeholder="Additional context or instructions for AI meetings...">{{ customizations.custom_instructions }}</textarea>
                         <div class="form-text">Extra context provided to the AI during meetings (e.g., "Focus on bootstrapped startups")</div>
+                    </div>
+
+                    <hr class="my-4">
+                    <h6 class="mb-3"><i class="bi bi-diagram-3 me-2"></i>Reporting Structure</h6>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="reports_to" class="form-label">Reports To</label>
+                            <select class="form-select" id="reports_to" name="reports_to">
+                                <option value="Architect" {% if customizations.reports_to == 'Architect' %}selected{% endif %}>Architect (You)</option>
+                                {% for aid, ainfo in all_agents.items() %}
+                                {% if aid != agent.id %}
+                                <option value="{{ ainfo.name }}" {% if customizations.reports_to == ainfo.name %}selected{% endif %}>{{ ainfo.name }}</option>
+                                {% endif %}
+                                {% endfor %}
+                            </select>
+                            <div class="form-text">Who this agent reports to in your organization</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="direct_reports" class="form-label">Direct Reports</label>
+                            <input type="text" class="form-control" id="direct_reports" name="direct_reports"
+                                   value="{{ customizations.direct_reports | join(', ') if customizations.direct_reports else '' }}"
+                                   placeholder="e.g., CFO, CITO, Sales">
+                            <div class="form-text">Comma-separated list of agents who report to this one</div>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="collaborates_with" class="form-label">Collaborates With</label>
+                        <textarea class="form-control" id="collaborates_with" name="collaborates_with" rows="2"
+                                  placeholder="One collaboration per line (e.g., CFO for pricing)">{{ customizations.collaborates_with | join('\n') if customizations.collaborates_with else '' }}</textarea>
+                        <div class="form-text">Key collaboration relationships (one per line)</div>
                     </div>
 
                     <div class="d-flex gap-2">
@@ -433,20 +465,23 @@
 
         <!-- Collaboration -->
         <div class="card content-card mb-4">
-            <div class="card-header">
+            <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="mb-0"><i class="bi bi-people me-2"></i>Collaboration & Reporting</h5>
+                <a href="{{ url_for('agent_portal', agent_id=agent.id, tab='settings') }}" class="btn btn-sm btn-outline-secondary">
+                    <i class="bi bi-pencil me-1"></i>Edit
+                </a>
             </div>
             <div class="card-body">
-                {% if documentation.collaboration %}
                 <div class="row">
                     <div class="col-md-4 mb-3">
                         <h6 class="text-muted mb-2">Reports To</h6>
-                        <span class="badge bg-primary fs-6">{{ documentation.collaboration.reports_to }}</span>
+                        <span class="badge bg-primary fs-6">{{ customizations.reports_to or documentation.collaboration.reports_to if documentation.collaboration else 'Architect' }}</span>
                     </div>
                     <div class="col-md-4 mb-3">
                         <h6 class="text-muted mb-2">Direct Reports</h6>
-                        {% if documentation.collaboration.direct_reports %}
-                            {% for report in documentation.collaboration.direct_reports %}
+                        {% set direct_reports = customizations.direct_reports if customizations.direct_reports else (documentation.collaboration.direct_reports if documentation.collaboration else []) %}
+                        {% if direct_reports %}
+                            {% for report in direct_reports %}
                             <span class="badge bg-secondary me-1">{{ report }}</span>
                             {% endfor %}
                         {% else %}
@@ -455,14 +490,15 @@
                     </div>
                     <div class="col-md-4 mb-3">
                         <h6 class="text-muted mb-2">Collaborates With</h6>
-                        {% for collab in documentation.collaboration.collaborates_with %}
+                        {% set collaborates = customizations.collaborates_with if customizations.collaborates_with else (documentation.collaboration.collaborates_with if documentation.collaboration else []) %}
+                        {% for collab in collaborates %}
                         <div class="small mb-1">{{ collab }}</div>
                         {% endfor %}
+                        {% if not collaborates %}
+                        <span class="text-muted">Not specified</span>
+                        {% endif %}
                     </div>
                 </div>
-                {% else %}
-                <p class="text-muted">Collaboration information not available.</p>
-                {% endif %}
             </div>
         </div>
 
@@ -508,17 +544,30 @@
             </div>
         </div>
 
-        <!-- CLI Commands -->
+        <!-- Quick Actions -->
         <div class="card content-card mb-4">
             <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-terminal me-2"></i>CLI Commands</h5>
+                <h5 class="mb-0"><i class="bi bi-lightning me-2"></i>Quick Actions</h5>
             </div>
             <div class="card-body">
-                <p class="text-muted small mb-2">Start a 1:1 meeting:</p>
-                <code class="d-block bg-light p-2 rounded mb-3 small">python orchestrator.py 1on1 --agent {{ agent.id }}</code>
-
-                <p class="text-muted small mb-2">With a specific topic:</p>
-                <code class="d-block bg-light p-2 rounded small">python orchestrator.py 1on1 --agent {{ agent.id }} --topic "Your topic"</code>
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('agent_request_new', agent_id=agent.id) }}" class="btn btn-primary btn-sm">
+                        <i class="bi bi-plus-circle me-1"></i>Submit Feature Request
+                    </a>
+                    <a href="{{ url_for('agent_portal', agent_id=agent.id, tab='requests') }}" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-list-ul me-1"></i>View All Requests
+                    </a>
+                    <a href="{{ url_for('agent_portal', agent_id=agent.id, tab='settings') }}" class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-gear me-1"></i>Customize Agent
+                    </a>
+                </div>
+                <hr class="my-3">
+                <p class="text-muted small mb-2">Related Pages:</p>
+                <ul class="list-unstyled small mb-0">
+                    <li class="mb-1"><a href="{{ url_for('agents_list') }}"><i class="bi bi-robot me-1"></i>All Agent Portals</a></li>
+                    <li class="mb-1"><a href="{{ url_for('agent_requests_pending') }}"><i class="bi bi-bell me-1"></i>Pending Requests</a></li>
+                    <li><a href="{{ url_for('settings_page') }}"><i class="bi bi-building me-1"></i>Company Settings</a></li>
+                </ul>
             </div>
         </div>
 
