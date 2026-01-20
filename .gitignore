@@ -39,3 +39,6 @@ env/
 # OS
 .DS_Store
 Thumbs.db
+
+# Data files (user-specific)
+data/*.json
