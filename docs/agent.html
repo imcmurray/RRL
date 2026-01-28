@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent Portal - Rinse Repeat Labs Demo</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Demo Mode Banner -->
+    <div class="demo-banner">
+        <div class="container-fluid">
+            <i class="bi bi-info-circle me-2"></i>
+            <strong>Demo Mode</strong> - AI responses are simulated. In the full app, these come from Claude AI.
+            <a href="https://github.com/imcmurray/RRL" target="_blank" class="ms-2 text-white">
+                <i class="bi bi-github me-1"></i>View on GitHub
+            </a>
+        </div>
+    </div>
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="index.html">
+                <i class="bi bi-arrow-repeat me-2"></i>Rinse Repeat Labs
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html">
+                            <i class="bi bi-speedometer2 me-1"></i>Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle active" href="#" data-bs-toggle="dropdown">
+                            <i class="bi bi-robot me-1"></i>Agent Portals
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="agents.html">All Agent Portals</a></li>
+                            <li><a class="dropdown-item text-success fw-bold" href="meeting.html"><i class="bi bi-people me-1"></i>Start Group Meeting</a></li>
+                        </ul>
+                    </li>
+                </ul>
+                <div class="navbar-nav">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle text-light" href="#" data-bs-toggle="dropdown">
+                            <i class="bi bi-gear-fill me-1"></i>Settings
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li class="dropdown-header">Appearance</li>
+                            <li>
+                                <button class="dropdown-item d-flex align-items-center" id="theme-toggle" type="button">
+                                    <i class="bi bi-sun-fill me-2" id="theme-icon"></i>
+                                    <span id="theme-label">Light Mode</span>
+                                </button>
+                            </li>
+                        </ul>
+                    </li>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container-fluid py-4">
+        <div class="row mb-4">
+            <div class="col-12">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="index.html">Dashboard</a></li>
+                        <li class="breadcrumb-item"><a href="agents.html">Agent Portals</a></li>
+                        <li class="breadcrumb-item active" id="breadcrumb-agent">Agent</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+
+        <!-- Agent Header -->
+        <div class="agent-header">
+            <div class="row align-items-center">
+                <div class="col-auto">
+                    <div class="agent-avatar" id="agent-avatar" style="background-color: #6c757d;">
+                        <i class="bi bi-person" id="agent-icon"></i>
+                    </div>
+                </div>
+                <div class="col">
+                    <h2 class="mb-1" id="agent-name">Agent</h2>
+                    <p class="text-muted mb-0" id="agent-title">Loading...</p>
+                </div>
+                <div class="col-auto">
+                    <span class="badge bg-success">Online</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Chat Column -->
+            <div class="col-lg-8 mb-4">
+                <div class="card content-card">
+                    <div class="card-header">
+                        <h5><i class="bi bi-chat-dots me-2"></i>Chat with <span id="chat-agent-name">Agent</span></h5>
+                    </div>
+                    <div class="card-body">
+                        <!-- Chat Container -->
+                        <div class="chat-container" id="chat-container">
+                            <div class="chat-message agent">
+                                <div class="agent-name" id="welcome-agent-name">Agent</div>
+                                <div class="message-text" id="welcome-message">
+                                    Hello! I'm ready to assist you. What would you like to discuss today?
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Chat Input -->
+                        <div class="chat-input-container">
+                            <form id="chat-form" class="d-flex gap-2">
+                                <input type="text" class="form-control" id="chat-input"
+                                       placeholder="Type your message..." autocomplete="off">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-send"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Suggested Questions -->
+                <div class="card content-card mt-3">
+                    <div class="card-header">
+                        <h6 class="mb-0"><i class="bi bi-lightbulb me-2"></i>Suggested Questions</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex flex-wrap gap-2" id="suggested-questions">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="col-lg-4">
+                <!-- Agent Info -->
+                <div class="card content-card mb-3">
+                    <div class="card-header">
+                        <h6 class="mb-0"><i class="bi bi-info-circle me-2"></i>About This Agent</h6>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted" id="agent-description">Loading agent information...</p>
+                        <hr>
+                        <div class="mb-2">
+                            <strong>Team:</strong> <span id="agent-team">-</span>
+                        </div>
+                        <div>
+                            <strong>Expertise:</strong>
+                            <div id="agent-expertise" class="mt-1">-</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="card content-card mb-3">
+                    <div class="card-header">
+                        <h6 class="mb-0"><i class="bi bi-lightning me-2"></i>Quick Actions</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-outline-primary btn-sm text-start" onclick="askQuestion('What are the current priorities?')">
+                                <i class="bi bi-list-check me-2"></i>Current Priorities
+                            </button>
+                            <button class="btn btn-outline-primary btn-sm text-start" onclick="askQuestion('Can you give me a status update?')">
+                                <i class="bi bi-clipboard-data me-2"></i>Status Update
+                            </button>
+                            <button class="btn btn-outline-primary btn-sm text-start" onclick="askQuestion('What recommendations do you have?')">
+                                <i class="bi bi-lightbulb me-2"></i>Get Recommendations
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Other Agents -->
+                <div class="card content-card">
+                    <div class="card-header">
+                        <h6 class="mb-0"><i class="bi bi-people me-2"></i>Other Agents</h6>
+                    </div>
+                    <div class="card-body">
+                        <div id="other-agents" class="d-flex flex-wrap gap-1">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer mt-auto py-3 bg-light">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-md-6">
+                    <span class="text-muted">Rinse Repeat Labs - AI-Powered App Development Studio</span>
+                </div>
+                <div class="col-md-6 text-end">
+                    <span class="text-muted">Powered by 12 AI Agents</span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/demo-data.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        // Get agent ID from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const agentId = urlParams.get('id') || 'ceo';
+        const agent = DemoData.agents[agentId];
+
+        // Agent-specific icons
+        const agentIcons = {
+            ceo: 'bi-person-badge',
+            cfo: 'bi-cash-stack',
+            cito: 'bi-cpu',
+            sales: 'bi-graph-up-arrow',
+            legal: 'bi-briefcase',
+            dev_lead: 'bi-code-slash',
+            design_lead: 'bi-palette',
+            qa_lead: 'bi-bug',
+            pm: 'bi-kanban',
+            customer_success: 'bi-heart',
+            marketing: 'bi-megaphone',
+            support: 'bi-headset'
+        };
+
+        // Agent-specific expertise
+        const agentExpertise = {
+            ceo: ['Strategic Planning', 'Leadership', 'Decision Making', 'Company Vision'],
+            cfo: ['Financial Planning', 'Budgeting', 'Pricing Strategy', 'Risk Management'],
+            cito: ['Technology Strategy', 'Architecture', 'Infrastructure', 'Technical Feasibility'],
+            sales: ['Client Relations', 'Revenue Growth', 'Deal Negotiation', 'Market Analysis'],
+            legal: ['Contracts', 'Compliance', 'IP Protection', 'Risk Mitigation'],
+            dev_lead: ['Software Architecture', 'Code Quality', 'Technical Leadership', 'Agile Development'],
+            design_lead: ['UI/UX Design', 'User Research', 'Design Systems', 'Prototyping'],
+            qa_lead: ['Testing Strategy', 'Quality Assurance', 'Bug Tracking', 'Release Management'],
+            pm: ['Project Planning', 'Resource Management', 'Stakeholder Communication', 'Risk Management'],
+            customer_success: ['Client Onboarding', 'Retention', 'Account Management', 'Feedback Collection'],
+            marketing: ['Brand Strategy', 'Content Marketing', 'Lead Generation', 'Campaign Management'],
+            support: ['Customer Support', 'Issue Resolution', 'Documentation', 'Feedback Analysis']
+        };
+
+        // Suggested questions per agent
+        const suggestedQuestions = {
+            ceo: [
+                "What's our company vision?",
+                "How should we prioritize our projects?",
+                "What strategic initiatives should we focus on?"
+            ],
+            cfo: [
+                "What's our current financial health?",
+                "How should we price this project?",
+                "What's the ROI on this initiative?"
+            ],
+            cito: [
+                "What tech stack should we use?",
+                "Is this technically feasible?",
+                "How can we improve our infrastructure?"
+            ],
+            sales: [
+                "How can we grow revenue?",
+                "What's our sales pipeline looking like?",
+                "How should we approach this client?"
+            ],
+            legal: [
+                "What should be in our contracts?",
+                "Are we compliant with regulations?",
+                "How do we protect our IP?"
+            ],
+            dev_lead: [
+                "How long will this feature take?",
+                "What's the best architecture approach?",
+                "How can we improve code quality?"
+            ],
+            design_lead: [
+                "How should we approach this design?",
+                "What user research should we do?",
+                "How can we improve the UX?"
+            ],
+            qa_lead: [
+                "What's our testing strategy?",
+                "Are we ready for release?",
+                "What are the main quality risks?"
+            ],
+            pm: [
+                "What's our project timeline?",
+                "Are we on track?",
+                "What are the main risks?"
+            ],
+            customer_success: [
+                "How are our clients doing?",
+                "What's our retention rate?",
+                "What feedback have we received?"
+            ],
+            marketing: [
+                "How should we position this product?",
+                "What's our marketing strategy?",
+                "How can we generate more leads?"
+            ],
+            support: [
+                "What are common customer issues?",
+                "How's our support performance?",
+                "What documentation do we need?"
+            ]
+        };
+
+        // Initialize page
+        if (agent) {
+            // Update page elements
+            document.title = `${agent.short_name} Portal - Rinse Repeat Labs Demo`;
+            document.getElementById('breadcrumb-agent').textContent = agent.short_name;
+            document.getElementById('agent-name').textContent = agent.short_name;
+            document.getElementById('agent-title').textContent = agent.name;
+            document.getElementById('agent-avatar').style.backgroundColor = agent.color;
+            document.getElementById('agent-icon').className = `bi ${agentIcons[agentId]}`;
+            document.getElementById('chat-agent-name').textContent = agent.short_name;
+            document.getElementById('welcome-agent-name').textContent = agent.short_name;
+            document.getElementById('welcome-agent-name').style.color = agent.color;
+            document.getElementById('agent-description').textContent = agent.description;
+            document.getElementById('agent-team').textContent = agent.team;
+
+            // Set expertise badges
+            const expertiseEl = document.getElementById('agent-expertise');
+            expertiseEl.innerHTML = agentExpertise[agentId].map(e =>
+                `<span class="badge bg-secondary me-1 mb-1">${e}</span>`
+            ).join('');
+
+            // Set suggested questions
+            const questionsEl = document.getElementById('suggested-questions');
+            questionsEl.innerHTML = suggestedQuestions[agentId].map(q =>
+                `<button class="btn btn-outline-secondary btn-sm" onclick="askQuestion('${q}')">${q}</button>`
+            ).join('');
+
+            // Set other agents
+            const otherAgentsEl = document.getElementById('other-agents');
+            otherAgentsEl.innerHTML = Object.entries(DemoData.agents)
+                .filter(([id]) => id !== agentId)
+                .map(([id, a]) =>
+                    `<a href="agent.html?id=${id}" class="agent-badge agent-${id} text-decoration-none">${a.short_name}</a>`
+                ).join('');
+        }
+
+        // Chat functionality
+        const chatContainer = document.getElementById('chat-container');
+        const chatForm = document.getElementById('chat-form');
+        const chatInput = document.getElementById('chat-input');
+
+        chatForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const message = chatInput.value.trim();
+            if (!message) return;
+
+            // Add user message
+            RRLDemo.addChatMessage(chatContainer, message, true);
+            chatInput.value = '';
+
+            // Simulate AI response
+            await RRLDemo.simulateAIResponse(chatContainer, agentId, agent.short_name);
+        });
+
+        // Quick question function
+        function askQuestion(question) {
+            chatInput.value = question;
+            chatForm.dispatchEvent(new Event('submit'));
+        }
+    </script>
+</body>
+</html>

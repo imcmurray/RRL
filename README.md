@@ -2,6 +2,8 @@
 
 **Run your business with a team of 12 AI agents.** The RRL AI Orchestrator gives you an entire virtual company — CEO, CFO, engineers, designers, marketers, and more — ready to advise, strategize, and help you build.
 
+> **[Try the Live Demo](https://imcmurray.github.io/RRL/)** - Explore the dashboard and chat with AI agents (no setup required)
+
 ## Why Use This?
 
 **You're a solo founder** who needs a CFO's perspective on pricing, a lawyer's eye on contracts, and a marketing team's input on launch strategy — but you can't afford a full team.
@@ -152,11 +154,13 @@ CLI and Web Dashboard share the same data files — changes in one appear instan
 
 For detailed information on how the system works:
 
+- **[Live Demo](https://imcmurray.github.io/RRL/)** — Try the interactive demo (no setup required)
 - **[User Guide](docs/USER_GUIDE.md)** — Getting started, use case scenarios, dashboard walkthrough, and common workflows
 - **[Architecture Guide](docs/ARCHITECTURE.md)** — System architecture, context sharing, agent interaction patterns
 - **[Process Flows](docs/PROCESS.md)** — Idea submission, project lifecycle, decision making, operational processes
 - **[Data Management](docs/DATA_MANAGEMENT.md)** — Ideas, testers, clients, projects, finances, and reports
 - **[Agent Portals](docs/AGENT_PORTALS.md)** — Portal system, feature requests, and agent workspace management
+- **[Demo Site](docs/DEMO_README.md)** — How to deploy and customize the static demo
 
 ## License
 
