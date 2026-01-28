@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Group Meeting - Rinse Repeat Labs Demo</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Demo Mode Banner -->
+    <div class="demo-banner">
+        <div class="container-fluid">
+            <i class="bi bi-info-circle me-2"></i>
+            <strong>Demo Mode</strong> - AI responses are simulated. In the full app, each agent uses Claude AI.
+            <a href="https://github.com/imcmurray/RRL" target="_blank" class="ms-2 text-white">
+                <i class="bi bi-github me-1"></i>View on GitHub
+            </a>
+        </div>
+    </div>
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="index.html">
+                <i class="bi bi-arrow-repeat me-2"></i>Rinse Repeat Labs
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html">
+                            <i class="bi bi-speedometer2 me-1"></i>Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle active" href="#" data-bs-toggle="dropdown">
+                            <i class="bi bi-robot me-1"></i>Agent Portals
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="agents.html">All Agent Portals</a></li>
+                            <li><a class="dropdown-item text-success fw-bold" href="meeting.html"><i class="bi bi-people me-1"></i>Start Group Meeting</a></li>
+                        </ul>
+                    </li>
+                </ul>
+                <div class="navbar-nav">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle text-light" href="#" data-bs-toggle="dropdown">
+                            <i class="bi bi-gear-fill me-1"></i>Settings
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li class="dropdown-header">Appearance</li>
+                            <li>
+                                <button class="dropdown-item d-flex align-items-center" id="theme-toggle" type="button">
+                                    <i class="bi bi-sun-fill me-2" id="theme-icon"></i>
+                                    <span id="theme-label">Light Mode</span>
+                                </button>
+                            </li>
+                        </ul>
+                    </li>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container-fluid py-4">
+        <div class="row mb-4">
+            <div class="col-12">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="index.html">Dashboard</a></li>
+                        <li class="breadcrumb-item"><a href="agents.html">Agent Portals</a></li>
+                        <li class="breadcrumb-item active">Group Meeting</li>
+                    </ol>
+                </nav>
+                <h1 class="h3"><i class="bi bi-people me-2"></i>Group Meeting</h1>
+                <p class="text-muted">Get perspectives from multiple AI agents on any topic.</p>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Meeting Setup / Chat -->
+            <div class="col-lg-8 mb-4">
+                <!-- Meeting Setup (shown initially) -->
+                <div class="card content-card" id="meeting-setup">
+                    <div class="card-header">
+                        <h5><i class="bi bi-gear me-2"></i>Configure Meeting</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Meeting Type</label>
+                            <div class="row g-2">
+                                <div class="col-md-6">
+                                    <div class="form-check border rounded p-3">
+                                        <input class="form-check-input" type="radio" name="meetingType" id="typeExec" value="exec">
+                                        <label class="form-check-label" for="typeExec">
+                                            <strong>Executive Meeting</strong>
+                                            <small class="d-block text-muted">CEO, CFO, CITO, Sales, Legal</small>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-check border rounded p-3">
+                                        <input class="form-check-input" type="radio" name="meetingType" id="typeTech" value="tech">
+                                        <label class="form-check-label" for="typeTech">
+                                            <strong>Technical Meeting</strong>
+                                            <small class="d-block text-muted">CITO, Dev Lead, Design Lead, QA Lead</small>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-check border rounded p-3">
+                                        <input class="form-check-input" type="radio" name="meetingType" id="typeAllHands" value="all_hands">
+                                        <label class="form-check-label" for="typeAllHands">
+                                            <strong>All-Hands Meeting</strong>
+                                            <small class="d-block text-muted">All 12 agents</small>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-check border rounded p-3">
+                                        <input class="form-check-input" type="radio" name="meetingType" id="typeCustom" value="custom" checked>
+                                        <label class="form-check-label" for="typeCustom">
+                                            <strong>Custom Meeting</strong>
+                                            <small class="d-block text-muted">Select agents below</small>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-4" id="agent-selection">
+                            <label class="form-label fw-bold">Select Agents</label>
+                            <div class="row g-2">
+                                <!-- Executive -->
+                                <div class="col-12"><small class="text-muted">Executive Team</small></div>
+                                <div class="col-auto">
+                                    <div class="form-check">
+                                        <input class="form-check-input agent-checkbox" type="checkbox" value="ceo" id="check-ceo" checked>
+                                        <label class="form-check-label agent-badge agent-ceo" for="check-ceo">CEO</label>
+                                    </div>
+                                </div>
+                                <div class="col-auto">
+                                    <div class="form-check">
+                                        <input class="form-check-input agent-checkbox" type="checkbox" value="cfo" id="check-cfo">
+                                        <label class="form-check-label agent-badge agent-cfo" for="check-cfo">CFO</label>
+                                    </div>
+                                </div>
+                                <div class="col-auto">
+                                    <div class="form-check">
+                                        <input class="form-check-input agent-checkbox" type="checkbox" value="cito" id="check-cito" checked>
+                                        <label class="form-check-label agent-badge agent-cito" for="check-cito">CITO</label>
+                                    </div>
+                                </div>
+                                <div class="col-auto">
+                                    <div class="form-check">
+                                        <input class="form-check-input agent-checkbox" type="checkbox" value="sales" id="check-sales">
+                                        <label class="form-check-label agent-badge agent-sales" for="check-sales">Sales</label>
+                                    </div>
+                                </div>
+                                <div class="col-auto">
+                                    <div class="form-check">
+                                        <input class="form-check-input agent-checkbox" type="checkbox" value="legal" id="check-legal">
+                                        <label class="form-check-label agent-badge agent-legal" for="check-legal">Legal</label>
+                                    </div>
+                                </div>
+
+                                <!-- Technical -->
+                                <div class="col-12 mt-2"><small class="text-muted">Technical Team</small></div>
+                                <div class="col-auto">
+                                    <div class="form-check">
+                                        <input class="form-check-input agent-checkbox" type="checkbox" value="dev_lead" id="check-dev_lead" checked>
+                                        <label class="form-check-label agent-badge agent-dev_lead" for="check-dev_lead">Dev Lead</label>
+                                    </div>
+                                </div>
+                                <div class="col-auto">
+                                    <div class="form-check">
+                                        <input class="form-check-input agent-checkbox" type="checkbox" value="design_lead" id="check-design_lead">
+                                        <label class="form-check-label agent-badge agent-design_lead" for="check-design_lead">Design Lead</label>
+                                    </div>
+                                </div>
+                                <div class="col-auto">
+                                    <div class="form-check">
+                                        <input class="form-check-input agent-checkbox" type="checkbox" value="qa_lead" id="check-qa_lead">
+                                        <label class="form-check-label agent-badge agent-qa_lead" for="check-qa_lead">QA Lead</label>
+                                    </div>
+                                </div>
+
+                                <!-- Operations -->
+                                <div class="col-12 mt-2"><small class="text-muted">Operations Team</small></div>
+                                <div class="col-auto">
+                                    <div class="form-check">
+                                        <input class="form-check-input agent-checkbox" type="checkbox" value="pm" id="check-pm">
+                                        <label class="form-check-label agent-badge agent-pm" for="check-pm">PM</label>
+                                    </div>
+                                </div>
+                                <div class="col-auto">
+                                    <div class="form-check">
+                                        <input class="form-check-input agent-checkbox" type="checkbox" value="customer_success" id="check-customer_success">
+                                        <label class="form-check-label agent-badge agent-customer_success" for="check-customer_success">Customer Success</label>
+                                    </div>
+                                </div>
+                                <div class="col-auto">
+                                    <div class="form-check">
+                                        <input class="form-check-input agent-checkbox" type="checkbox" value="marketing" id="check-marketing">
+                                        <label class="form-check-label agent-badge agent-marketing" for="check-marketing">Marketing</label>
+                                    </div>
+                                </div>
+                                <div class="col-auto">
+                                    <div class="form-check">
+                                        <input class="form-check-input agent-checkbox" type="checkbox" value="support" id="check-support">
+                                        <label class="form-check-label agent-badge agent-support" for="check-support">Support</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="meeting-topic" class="form-label fw-bold">Meeting Topic / Question</label>
+                            <textarea class="form-control" id="meeting-topic" rows="3"
+                                      placeholder="What would you like to discuss? e.g., 'Should we build a mobile app for our client management system?'"></textarea>
+                        </div>
+
+                        <button type="button" class="btn btn-primary btn-lg" id="start-meeting">
+                            <i class="bi bi-play-circle me-2"></i>Start Meeting
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Meeting Chat (hidden initially) -->
+                <div class="card content-card d-none" id="meeting-chat">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5><i class="bi bi-chat-dots me-2"></i>Meeting in Progress</h5>
+                        <button class="btn btn-sm btn-outline-secondary" id="new-meeting">
+                            <i class="bi bi-plus-circle me-1"></i>New Meeting
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <strong>Topic:</strong> <span id="display-topic" class="text-muted"></span>
+                        </div>
+                        <div class="mb-3">
+                            <strong>Participants:</strong>
+                            <span id="display-participants"></span>
+                        </div>
+                        <hr>
+
+                        <!-- Chat Container -->
+                        <div class="chat-container" id="meeting-container" style="height: 500px;">
+                            <!-- Messages will be added here -->
+                        </div>
+
+                        <!-- Follow-up Input -->
+                        <div class="chat-input-container">
+                            <form id="followup-form" class="d-flex gap-2">
+                                <input type="text" class="form-control" id="followup-input"
+                                       placeholder="Ask a follow-up question..." autocomplete="off">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-send"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="col-lg-4">
+                <!-- Meeting Tips -->
+                <div class="card content-card mb-3">
+                    <div class="card-header">
+                        <h6 class="mb-0"><i class="bi bi-lightbulb me-2"></i>Meeting Tips</h6>
+                    </div>
+                    <div class="card-body">
+                        <ul class="small text-muted mb-0">
+                            <li class="mb-2">Be specific about what you want to discuss</li>
+                            <li class="mb-2">Select agents relevant to your topic</li>
+                            <li class="mb-2">Each agent will provide their unique perspective</li>
+                            <li>You can ask follow-up questions after initial responses</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Example Topics -->
+                <div class="card content-card">
+                    <div class="card-header">
+                        <h6 class="mb-0"><i class="bi bi-chat-quote me-2"></i>Example Topics</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-outline-secondary btn-sm text-start example-topic">
+                                Should we expand into mobile app development?
+                            </button>
+                            <button class="btn btn-outline-secondary btn-sm text-start example-topic">
+                                How should we handle a client requesting scope changes?
+                            </button>
+                            <button class="btn btn-outline-secondary btn-sm text-start example-topic">
+                                What's our strategy for the next quarter?
+                            </button>
+                            <button class="btn btn-outline-secondary btn-sm text-start example-topic">
+                                How can we improve our development process?
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer mt-auto py-3 bg-light">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-md-6">
+                    <span class="text-muted">Rinse Repeat Labs - AI-Powered App Development Studio</span>
+                </div>
+                <div class="col-md-6 text-end">
+                    <span class="text-muted">Powered by 12 AI Agents</span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/demo-data.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        // Meeting type presets
+        const presets = {
+            exec: ['ceo', 'cfo', 'cito', 'sales', 'legal'],
+            tech: ['cito', 'dev_lead', 'design_lead', 'qa_lead'],
+            all_hands: Object.keys(DemoData.agents),
+            custom: []
+        };
+
+        // Handle preset from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const presetParam = urlParams.get('preset');
+        if (presetParam && presets[presetParam]) {
+            document.getElementById(`type${presetParam.charAt(0).toUpperCase() + presetParam.slice(1).replace('_', '')}`).checked = true;
+            applyPreset(presetParam);
+        }
+
+        // Meeting type radio change
+        document.querySelectorAll('input[name="meetingType"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                applyPreset(this.value);
+            });
+        });
+
+        function applyPreset(preset) {
+            if (preset === 'custom') return;
+
+            document.querySelectorAll('.agent-checkbox').forEach(cb => {
+                cb.checked = presets[preset].includes(cb.value);
+            });
+        }
+
+        // Example topics
+        document.querySelectorAll('.example-topic').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.getElementById('meeting-topic').value = this.textContent.trim();
+            });
+        });
+
+        // Start meeting
+        document.getElementById('start-meeting').addEventListener('click', async function() {
+            const topic = document.getElementById('meeting-topic').value.trim();
+            if (!topic) {
+                RRLDemo.showToast('Please enter a meeting topic.', 'warning');
+                return;
+            }
+
+            const selectedAgents = Array.from(document.querySelectorAll('.agent-checkbox:checked'))
+                .map(cb => cb.value);
+
+            if (selectedAgents.length === 0) {
+                RRLDemo.showToast('Please select at least one agent.', 'warning');
+                return;
+            }
+
+            // Switch to chat view
+            document.getElementById('meeting-setup').classList.add('d-none');
+            document.getElementById('meeting-chat').classList.remove('d-none');
+
+            // Display topic and participants
+            document.getElementById('display-topic').textContent = topic;
+            document.getElementById('display-participants').innerHTML = selectedAgents.map(id =>
+                `<span class="agent-badge agent-${id} me-1">${DemoData.agents[id].short_name}</span>`
+            ).join('');
+
+            // Clear container
+            const container = document.getElementById('meeting-container');
+            container.innerHTML = '';
+
+            // Add user's question
+            RRLDemo.addChatMessage(container, topic, true);
+
+            // Get responses from each agent sequentially
+            for (const agentId of selectedAgents) {
+                const agent = DemoData.agents[agentId];
+                await RRLDemo.simulateAIResponse(container, agentId, agent.short_name);
+            }
+        });
+
+        // Follow-up form
+        document.getElementById('followup-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const input = document.getElementById('followup-input');
+            const message = input.value.trim();
+            if (!message) return;
+
+            const container = document.getElementById('meeting-container');
+
+            // Add user message
+            RRLDemo.addChatMessage(container, message, true);
+            input.value = '';
+
+            // Get responses from selected agents
+            const selectedAgents = Array.from(document.querySelectorAll('.agent-checkbox:checked'))
+                .map(cb => cb.value);
+
+            // Pick 2-3 random agents to respond to follow-up
+            const respondingAgents = selectedAgents
+                .sort(() => Math.random() - 0.5)
+                .slice(0, Math.min(3, selectedAgents.length));
+
+            for (const agentId of respondingAgents) {
+                const agent = DemoData.agents[agentId];
+                await RRLDemo.simulateAIResponse(container, agentId, agent.short_name);
+            }
+        });
+
+        // New meeting button
+        document.getElementById('new-meeting').addEventListener('click', function() {
+            document.getElementById('meeting-setup').classList.remove('d-none');
+            document.getElementById('meeting-chat').classList.add('d-none');
+            document.getElementById('meeting-topic').value = '';
+        });
+    </script>
+</body>
+</html>
